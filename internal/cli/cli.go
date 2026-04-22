@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"glance/internal/downloader"
+	"glance/internal/keygen"
 	licensecontent "glance/internal/license"
 	"glance/internal/uploader"
 	"glance/internal/verifier"
@@ -18,6 +19,10 @@ import (
 type Config struct {
 	Download     bool
 	Upload       bool
+	Keygen       bool
+	KeyAlgo      string
+	KeyOutputDir string
+	KeyName      string
 	ShowLicense  bool
 	ShowHelp     bool
 	ISOSource    string
@@ -53,6 +58,10 @@ func Parse(args []string) (Config, error) {
 
 	fs.BoolVar(&cfg.Download, "download", false, "Download/copy ISO from source")
 	fs.BoolVar(&cfg.Upload, "upload", false, "Upload ISO/file to remote server over SSH")
+	fs.BoolVar(&cfg.Keygen, "keygen", false, "Generate SSH key pair (ed25519, rsa, ecdsa)")
+	fs.StringVar(&cfg.KeyAlgo, "key-algo", "ed25519", "Key algorithm: ed25519, rsa, ecdsa")
+	fs.StringVar(&cfg.KeyOutputDir, "key-output", "~/.ssh", "Directory to write generated key pair")
+	fs.StringVar(&cfg.KeyName, "key-name", "", "Key filename without extension (default: id_<algo>)")
 	fs.BoolVar(&cfg.ShowLicense, "license", false, "Show MIT license and copyright")
 	fs.BoolVar(&cfg.ShowHelp, "help", false, "Show help")
 	fs.StringVar(&cfg.ISOSource, "iso", "", "ISO source URL/path (required for --download)")
@@ -77,7 +86,7 @@ func Parse(args []string) (Config, error) {
 		return cfg, err
 	}
 
-	if !cfg.Download && !cfg.Upload && !cfg.ShowLicense && !cfg.ShowHelp {
+	if !cfg.Download && !cfg.Upload && !cfg.Keygen && !cfg.ShowLicense && !cfg.ShowHelp {
 		cfg.ShowHelp = true
 	}
 
@@ -88,32 +97,38 @@ func HelpText() string {
 	return `glance - modular ISO download/upload CLI
 
 Usage:
-	./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.2-live-server-amd64.iso
-	./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.2-live-server-amd64.iso --checksum <sha256sum>
-	./glance --download --iso /home/user/isos/archlinux-x86_64.iso
-	./glance --upload --file ./downloads/ubuntu-24.04.2-live-server-amd64.iso --host 192.168.1.50 --user root --password secret
-	./glance --upload --file ./downloads/ubuntu-24.04.2-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa
-	./glance --download --iso https://example.com/os.iso --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa
+  ./glance --keygen
+  ./glance --keygen --key-algo ed25519
+  ./glance --keygen --key-algo rsa --key-output ~/.ssh --key-name id_rsa_glance
+  ./glance --keygen --key-algo ecdsa
+  ./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
+  ./glance --download --iso /home/user/isos/archlinux-x86_64.iso --checksum <sha256sum>
+  ./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_ed25519
+  ./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433 --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_ed25519
   ./glance --license
 
 Flags:
-	--download      Download/copy ISO from source
-  --upload        Upload selected ISO/file over SSH/SFTP
-	--iso           ISO source URL/path (required for --download)
-	--url           Alias of --iso
-	--checksum      Expected checksum for downloaded ISO (required for --download)
-	--checksum-algo Checksum algorithm: sha256, sha512, md5 (default: sha256)
-  --output        Download output directory (default: ./downloads)
-  --file          Local file path for upload
-  --host          Remote SSH host/IP
-  --port          Remote SSH port (default: 22)
-  --user          Remote SSH username
-  --password      Remote SSH password
-  --ssh-key       SSH private key path
-	--known-hosts   Path to SSH known_hosts file (default: ~/.ssh/known_hosts)
-  --remote-path   Remote upload directory (default: /tmp)
-  --license       Print MIT license and copyright
-  --help          Show this help
+  --download        Download/copy ISO from source
+  --upload          Upload ISO/file over SSH/SFTP
+  --keygen          Generate SSH key pair
+  --key-algo        Key algorithm: ed25519 (default), rsa, ecdsa
+  --key-output      Directory for generated key (default: ~/.ssh)
+  --key-name        Key filename without extension (default: id_<algo>)
+  --iso             ISO source URL/path (required for --download)
+  --url             Alias of --iso
+  --checksum        Expected checksum for downloaded ISO (required for --download)
+  --checksum-algo   Checksum algorithm: sha256, sha512, md5 (default: sha256)
+  --output          Download output directory (default: ./downloads)
+  --file            Local file path for upload
+  --host            Remote SSH host/IP
+  --port            Remote SSH port (default: 22)
+  --user            Remote SSH username
+  --password        Remote SSH password
+  --ssh-key         SSH private key path (rsa, ed25519, ecdsa supported)
+  --known-hosts     Path to SSH known_hosts file (default: ~/.ssh/known_hosts)
+  --remote-path     Remote upload directory (default: /tmp)
+  --license         Print MIT license and copyright
+  --help            Show this help
 
 MIT License:
 ` + licensecontent.Text + `
@@ -123,6 +138,12 @@ MIT License:
 func Run(cfg Config) error {
 	var downloadedPath string
 	var err error
+
+	if cfg.Keygen {
+		if err := runKeygen(cfg); err != nil {
+			return err
+		}
+	}
 
 	if cfg.Download {
 		if strings.TrimSpace(cfg.ISOSource) == "" {
@@ -265,4 +286,35 @@ func prompt(reader *bufio.Reader, label string) (string, error) {
 func isHTTPSource(source string) bool {
 	source = strings.ToLower(strings.TrimSpace(source))
 	return strings.HasPrefix(source, "http://") || strings.HasPrefix(source, "https://")
+}
+
+func runKeygen(cfg Config) error {
+	outputDir := cfg.KeyOutputDir
+	if strings.HasPrefix(outputDir, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("resolve home dir: %w", err)
+		}
+		outputDir = filepath.Join(home, strings.TrimPrefix(outputDir, "~/"))
+	}
+
+	algo := cfg.KeyAlgo
+	if algo == "" {
+		algo = "ed25519"
+	}
+
+	kc := keygen.Config{
+		Algorithm: algo,
+		OutputDir: outputDir,
+		KeyName:   cfg.KeyName,
+	}
+
+	privPath, pubPath, err := keygen.GenerateKeyPair(kc)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Generated %s key pair:\n  Private: %s\n  Public:  %s\n", algo, privPath, pubPath)
+	fmt.Printf("Add public key to remote server:\n  ssh-copy-id -i %s user@host\n", pubPath)
+	return nil
 }

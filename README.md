@@ -32,13 +32,13 @@ go build -o glance .
 Sadece ISO indir:
 
 ```bash
-./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.2-live-server-amd64.iso
+./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
 ```
 
-SHA256 ile dogrulayarak indir:
+Belirli checksum ile dogrulayarak indir:
 
 ```bash
-./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.2-live-server-amd64.iso --checksum <sha256sum>
+./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
 ```
 
 Lokal ISO path'ten kopyala:
@@ -56,19 +56,19 @@ Lokal dosyayi sha512 ile dogrula:
 Indirilen ISO dosyasini upload et (sifre ile):
 
 ```bash
-./glance --upload --file ./downloads/ubuntu-24.04.2-live-server-amd64.iso --host 192.168.1.50 --user root --password secret
+./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --password secret
 ```
 
 Indirilen ISO dosyasini upload et (SSH key ile):
 
 ```bash
-./glance --upload --file ./downloads/ubuntu-24.04.2-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
+./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
 Tek komutta indir ve yukle:
 
 ```bash
-./glance --download --iso https://mirror.example.com/custom-os.iso --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
+./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433 --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
 Not: `--download` islemi checksum dogrulamasi olmadan tamamlanmaz. `--checksum` vermezsen komut senden interaktif olarak ister.
