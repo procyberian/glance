@@ -1,5 +1,5 @@
 # ChangeLog
-Generated on: Thu Apr 23 12:15:22 AM +03 2026
+Generated on: 2026-04-23T00:18:13+03:00
 
 ## Commit History
 - bec52f4 2026-04-22 Mert Gör: ilk MIT/Expat ile
@@ -10,3 +10,4 @@ Generated on: Thu Apr 23 12:15:22 AM +03 2026
 - 0bcbece 2026-04-23 Mert Gör: docs(readme): add U.S. English copy as README.en.md
 - 543ed11 2026-04-23 Mert Gör: docs(readme): embed full MIT license text in both readme files
 - 69eb5ef 2026-04-23 Mert Gör: docs(source): add MIT license header and file purpose comments to all Go source files
+- bf7e17b 2026-04-23 Mert Gör: docs(changelog): add full commit history changelog
