@@ -34,7 +34,20 @@ func DownloadISO(source, outputDir string) (string, error) {
 		return copyLocalISO(source, outPath)
 	}
 
-	client := &http.Client{Timeout: 0}
+	source = upgradeToHTTPS(source)
+
+	client := &http.Client{
+		Timeout: 0,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if req.URL.Scheme == "http" {
+				req.URL.Scheme = "https"
+			}
+			if len(via) >= 10 {
+				return fmt.Errorf("too many redirects")
+			}
+			return nil
+		},
+	}
 	resp, err := client.Get(source)
 	if err != nil {
 		return "", fmt.Errorf("http get: %w", err)
@@ -92,6 +105,16 @@ func copyLocalISO(sourcePath, outPath string) (string, error) {
 func isHTTPSource(source string) bool {
 	source = strings.ToLower(strings.TrimSpace(source))
 	return strings.HasPrefix(source, "http://") || strings.HasPrefix(source, "https://")
+}
+
+// upgradeToHTTPS replaces http:// with https:// to ensure encrypted transfers.
+func upgradeToHTTPS(source string) string {
+	if strings.HasPrefix(strings.ToLower(source), "http://") {
+		upgraded := "https://" + source[len("http://"):]
+		fmt.Printf("Warning: HTTP URL upgraded to HTTPS: %s\n", upgraded)
+		return upgraded
+	}
+	return source
 }
 
 func transferWithProgress(src io.Reader, dst io.Writer, total int64, networkTransfer bool) (int64, error) {
