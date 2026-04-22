@@ -1,5 +1,5 @@
 # ChangeLog
-Generated on: 2026-04-23T00:18:22+03:00
+Generated on: 2026-04-23T00:25:36+03:00
 
 ## Commit History
 - bec52f4 2026-04-22 Mert Gör: ilk MIT/Expat ile
@@ -12,3 +12,4 @@ Generated on: 2026-04-23T00:18:22+03:00
 - 69eb5ef 2026-04-23 Mert Gör: docs(source): add MIT license header and file purpose comments to all Go source files
 - bf7e17b 2026-04-23 Mert Gör: docs(changelog): add full commit history changelog
 - 362c8a8 2026-04-23 Mert Gör: docs(changelog): refresh full history
+- 358da80 2026-04-23 Mert Gör: docs(changelog): include latest changelog commit in history

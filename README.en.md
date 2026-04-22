@@ -91,6 +91,31 @@ Help:
 ./glance --help
 ```
 
+## Changelog Note
+
+Commit timestamps in `ChangeLog.md` may occasionally appear one step behind.
+To see the latest commit timing, run `git log` in your terminal or check the log/history view in your Git UI.
+
+Linux/macOS (Terminal):
+
+```bash
+git log --date=iso --pretty=format:"%h %ad %an: %s"
+```
+
+Windows (PowerShell):
+
+```powershell
+git log --date=iso --pretty=format:"%h %ad %an: %s"
+```
+
+Windows (Git Bash):
+
+```bash
+git log --date=iso --pretty=format:"%h %ad %an: %s"
+```
+
+Note: You can also see commit timestamps directly in Git UIs such as VS Code Source Control, GitKraken, and GitHub Desktop.
+
 ## License
 
 MIT License

@@ -91,6 +91,31 @@ Yardim:
 ./glance --help
 ```
 
+## Changelog Notu
+
+`ChangeLog.md` dosyasindaki commit tarihleri bazen bir adim geriden gelebilir.
+En guncel commit zamanini gormek icin terminalde veya Git arayuzunuzun log ekraninda `git log` calistirarak dogrulama yapin.
+
+Linux/macOS (Terminal):
+
+```bash
+git log --date=iso --pretty=format:"%h %ad %an: %s"
+```
+
+Windows (PowerShell):
+
+```powershell
+git log --date=iso --pretty=format:"%h %ad %an: %s"
+```
+
+Windows (Git Bash):
+
+```bash
+git log --date=iso --pretty=format:"%h %ad %an: %s"
+```
+
+Not: VS Code Source Control, GitKraken, GitHub Desktop gibi Git arayuzlerinde de commit tarihlerini dogrudan gorebilirsiniz.
+
 ## License
 
 MIT License
