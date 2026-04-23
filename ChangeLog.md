@@ -1,6 +1,14 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-04-23 - v7.0.0 Release Preparation
+
+### Documentation Changes
+
+- Refined the Turkish README with full Turkish characters for headings, feature descriptions, and usage guidance
+- Standardized Turkey Turkish terminology across user, administrator, and developer sections for better release-readiness
+- Aligned README section wording around resume handling, destination prompts, progress reporting, and changelog guidance
+
 ## 2026-04-23 - v6.0.0 Release Preparation
 
 ### User-Facing Changes
