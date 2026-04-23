@@ -90,7 +90,7 @@ func Parse(args []string) (Config, error) {
 	fs.BoolVar(&cfg.ShowHelp, "help", false, "Show help")
 	fs.StringVar(&cfg.ISOSource, "iso", "", "ISO source URL/path (required for --download)")
 	fs.StringVar(&cfg.ISOSource, "url", "", "ISO source URL/path (alias of --iso)")
-	fs.StringVar(&cfg.Checksum, "checksum", "", "Expected checksum for downloaded ISO (required for --download)")
+	fs.StringVar(&cfg.Checksum, "checksum", "", "Expected checksum for downloaded ISO (optional; auto-discovered for HTTP or calculated locally)")
 	fs.StringVar(&cfg.ChecksumAlgo, "checksum-algo", "sha256", "Checksum algorithm: sha256, sha512, md5")
 	fs.StringVar(&cfg.OutputDir, "output", "./downloads", "Download output directory")
 	fs.StringVar(&cfg.FileToUpload, "file", "", "Local file path to upload")
@@ -125,10 +125,11 @@ Usage:
   ./glance --keygen --key-algo ed25519
   ./glance --keygen --key-algo rsa --key-output ~/.ssh --key-name id_rsa_glance
   ./glance --keygen --key-algo ecdsa
-  ./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
+	./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso
+	./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
   ./glance --download --iso /home/user/isos/archlinux-x86_64.iso --checksum <sha256sum>
   ./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_ed25519
-  ./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433 --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_ed25519
+	./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_ed25519
   ./glance --license
 
 Flags:
@@ -140,7 +141,7 @@ Flags:
   --key-name        Key filename without extension (default: id_<algo>)
   --iso             ISO source URL/path (required for --download)
   --url             Alias of --iso
-  --checksum        Expected checksum for downloaded ISO (required for --download)
+	--checksum        Expected checksum for downloaded ISO (optional; auto-discovered for HTTP or calculated locally)
   --checksum-algo   Checksum algorithm: sha256, sha512, md5 (default: sha256)
   --output          Download output directory (default: ./downloads)
   --file            Local file path for upload
@@ -189,11 +190,22 @@ func Run(cfg Config) error {
 		}
 
 		if strings.TrimSpace(cfg.Checksum) == "" {
-			expectedChecksum, promptErr := prompt(bufio.NewReader(os.Stdin), "Expected checksum")
-			if promptErr != nil {
-				return promptErr
+			if isHTTPSource(cfg.ISOSource) {
+				expectedChecksum, resolveErr := downloader.ResolveChecksum(cfg.ISOSource, cfg.ChecksumAlgo)
+				if resolveErr == nil {
+					cfg.Checksum = expectedChecksum
+					fmt.Printf("Checksum auto-discovered (%s): %s\n", strings.ToLower(strings.TrimSpace(cfg.ChecksumAlgo)), cfg.Checksum)
+				}
 			}
-			cfg.Checksum = expectedChecksum
+		}
+
+		if strings.TrimSpace(cfg.Checksum) == "" {
+			calculatedChecksum, algoName, calcErr := verifier.CalculateFileHash(downloadedPath, cfg.ChecksumAlgo)
+			if calcErr != nil {
+				return calcErr
+			}
+			cfg.Checksum = calculatedChecksum
+			fmt.Printf("Checksum calculated locally (%s): %s\n", algoName, cfg.Checksum)
 		}
 
 		if strings.TrimSpace(cfg.Checksum) == "" {
@@ -204,7 +216,7 @@ func Run(cfg Config) error {
 			return err
 		}
 
-		fmt.Printf("Checksum verified (%s): %s\n", strings.ToLower(strings.TrimSpace(cfg.ChecksumAlgo)), downloadedPath)
+		fmt.Println("ok")
 	}
 
 	if cfg.Upload {
@@ -238,6 +250,8 @@ func Run(cfg Config) error {
 			KnownHosts: cfg.KnownHosts,
 			LocalFile:  fileToUpload,
 			RemotePath: cfg.RemotePath,
+			Checksum:   cfg.Checksum,
+			Algorithm:  cfg.ChecksumAlgo,
 		}
 		if err := uploader.UploadFile(u); err != nil {
 			return err

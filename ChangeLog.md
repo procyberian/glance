@@ -14,3 +14,4 @@ Generated on: 2026-04-23T00:25:48+03:00
 - 362c8a8 2026-04-23 Mert Gör: docs(changelog): refresh full history
 - 358da80 2026-04-23 Mert Gör: docs(changelog): include latest changelog commit in history
 - 48afdea 2026-04-23 Mert Gör: docs(readme): add changelog timestamp guidance in Turkish and U.S. English
+- 2026-04-23 Mert Gör: feat(checksum): auto-discover checksum from ISO URL when available, calculate locally otherwise, verify on remote upload, and standardize verification output to ok/try again

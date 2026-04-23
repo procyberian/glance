@@ -25,14 +25,19 @@
 package downloader
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
+
+var checksumLinePattern = regexp.MustCompile(`(?i)\b([a-f0-9]{32}|[a-f0-9]{64}|[a-f0-9]{128})\b`)
 
 func DownloadISO(source, outputDir string) (string, error) {
 	source = strings.TrimSpace(source)
@@ -96,6 +101,35 @@ func DownloadISO(source, outputDir string) (string, error) {
 	fmt.Printf("Downloaded %s (%.2f MB)\n", outPath, float64(written)/(1024*1024))
 	fmt.Printf("Completed at %s\n", time.Now().Format(time.RFC3339))
 	return outPath, nil
+}
+
+func ResolveChecksum(source, algorithm string) (string, error) {
+	source = strings.TrimSpace(source)
+	if !isHTTPSource(source) {
+		return "", fmt.Errorf("automatic checksum discovery is only supported for HTTP/HTTPS ISO sources")
+	}
+
+	source = upgradeToHTTPS(source)
+	checksumURLCandidates, err := checksumCandidates(source, algorithm)
+	if err != nil {
+		return "", err
+	}
+
+	isoName := pathBaseFromURL(source)
+	var lastErr error
+	for _, candidate := range checksumURLCandidates {
+		checksum, err := fetchChecksumCandidate(candidate, isoName)
+		if err == nil {
+			return checksum, nil
+		}
+		lastErr = err
+	}
+
+	if lastErr != nil {
+		return "", fmt.Errorf("automatic checksum discovery failed: %w", lastErr)
+	}
+
+	return "", fmt.Errorf("automatic checksum discovery failed")
 }
 
 func copyLocalISO(sourcePath, outPath string) (string, error) {
@@ -191,6 +225,116 @@ func transferWithProgress(src io.Reader, dst io.Writer, total int64, networkTran
 	}
 
 	return written, nil
+}
+
+func checksumCandidates(source, algorithm string) ([]string, error) {
+	parsedURL, err := url.Parse(source)
+	if err != nil {
+		return nil, fmt.Errorf("parse iso url: %w", err)
+	}
+
+	fileName := pathBaseFromURL(source)
+	if fileName == "" || fileName == "." || fileName == "/" {
+		fileName = "image.iso"
+	}
+
+	dirURL := *parsedURL
+	dirURL.RawQuery = ""
+	dirURL.Fragment = ""
+	dirURL.Path = strings.TrimSuffix(parsedURL.Path, fileName)
+
+	algoName := strings.ToLower(strings.TrimSpace(algorithm))
+	if algoName == "" {
+		algoName = "sha256"
+	}
+
+	suffix := map[string]string{
+		"sha256": ".sha256sum",
+		"sha512": ".sha512sum",
+		"md5":    ".md5sum",
+	}[algoName]
+	if suffix == "" {
+		return nil, fmt.Errorf("unsupported checksum algorithm: %s", algorithm)
+	}
+
+	indexName := map[string]string{
+		"sha256": "SHA256SUMS",
+		"sha512": "SHA512SUMS",
+		"md5":    "MD5SUMS",
+	}[algoName]
+
+	return []string{
+		source + suffix,
+		dirURL.String() + indexName,
+		dirURL.String() + "checksum",
+	}, nil
+}
+
+func fetchChecksumCandidate(candidateURL, isoName string) (string, error) {
+	resp, err := http.Get(candidateURL)
+	if err != nil {
+		return "", fmt.Errorf("fetch %s: %w", candidateURL, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("fetch %s: unexpected status %s", candidateURL, resp.Status)
+	}
+
+	checksum, err := extractChecksum(resp.Body, isoName)
+	if err != nil {
+		return "", fmt.Errorf("parse %s: %w", candidateURL, err)
+	}
+
+	return checksum, nil
+}
+
+func extractChecksum(r io.Reader, isoName string) (string, error) {
+	scanner := bufio.NewScanner(r)
+	var fallback string
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
+			continue
+		}
+
+		checksum := checksumLinePattern.FindString(line)
+		if checksum == "" {
+			continue
+		}
+
+		if fallback == "" {
+			fallback = strings.ToLower(checksum)
+		}
+
+		if isoName == "" {
+			return strings.ToLower(checksum), nil
+		}
+
+		normalizedLine := strings.ToLower(strings.ReplaceAll(line, "\\", "/"))
+		normalizedISOName := strings.ToLower(isoName)
+		if strings.Contains(normalizedLine, normalizedISOName) {
+			return strings.ToLower(checksum), nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	if fallback != "" {
+		return fallback, nil
+	}
+
+	return "", fmt.Errorf("no checksum entry found")
+}
+
+func pathBaseFromURL(rawURL string) string {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return filepath.Base(rawURL)
+	}
+	return filepath.Base(parsedURL.Path)
 }
 
 func printProgressLine(written, total int64, instantBps, avgBps float64, networkTransfer bool) {

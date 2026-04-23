@@ -11,7 +11,7 @@ Amac:
 
 - `--download`: Verilen ISO kaynagindan indirir veya lokal path'ten kopyalar
 - `--iso`: ISO source URL/path
-- `--checksum`: Indirme/kopyalama sonrasi hash dogrulamasi (zorunlu)
+- `--checksum`: Indirme/kopyalama sonrasi hash dogrulamasi; HTTP ISO URL'lerinde otomatik bulunur, diger durumlarda lokal hesaplanir
 - `--checksum-algo`: sha256 (default), sha512, md5
 - Indirme esnasinda canli yuzde, anlik/ortalama hiz, ag hizi ve kalan sure (ETA)
 - `--upload`: ISO veya dosyayi uzak sunucuya yukler
@@ -32,7 +32,7 @@ go build -o glance .
 Sadece ISO indir:
 
 ```bash
-./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
+./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso
 ```
 
 Belirli checksum ile dogrulayarak indir:
@@ -68,10 +68,10 @@ Indirilen ISO dosyasini upload et (SSH key ile):
 Tek komutta indir ve yukle:
 
 ```bash
-./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433 --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
+./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
-Not: `--download` islemi checksum dogrulamasi olmadan tamamlanmaz. `--checksum` vermezsen komut senden interaktif olarak ister.
+Not: `--download` islemi checksum dogrulamasi olmadan tamamlanmaz. HTTP ISO URL'lerinde arac sirasiyla `.sha256sum`/`.sha512sum`/`.md5sum`, ayni dizindeki `SHA256SUMS`/`SHA512SUMS`/`MD5SUMS` ve `checksum` dosyasini otomatik dener. Bulamazsa indirilen dosyanin checksum'unu lokal olarak hesaplar. `--upload` kullanildiginda ayni checksum uzak sunucuda da hesaplanip karsilastirilir.
 
 `known_hosts` kaydi yoksa once su komutla ekleyebilirsin:
 

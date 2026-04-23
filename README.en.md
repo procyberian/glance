@@ -11,7 +11,7 @@ Purpose:
 
 - `--download`: Downloads from the provided ISO source or copies from a local path
 - `--iso`: ISO source URL/path
-- `--checksum`: Hash verification after download/copy (required)
+- `--checksum`: Hash verification after download/copy; auto-discovered for HTTP ISO URLs and calculated locally otherwise
 - `--checksum-algo`: sha256 (default), sha512, md5
 - Live progress during transfer: percentage, instant/average speed, network speed, and ETA
 - `--upload`: Uploads an ISO or file to a remote server
@@ -32,7 +32,7 @@ go build -o glance .
 Download ISO only:
 
 ```bash
-./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
+./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso
 ```
 
 Download and verify with a specific checksum:
@@ -68,10 +68,10 @@ Upload downloaded ISO (SSH key auth):
 Download and upload in one command:
 
 ```bash
-./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433 --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
+./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
-Note: The `--download` operation does not complete without checksum verification. If you omit `--checksum`, the command prompts you interactively.
+Note: The `--download` operation does not complete without checksum verification. For HTTP ISO URLs, the tool automatically tries `.sha256sum`/`.sha512sum`/`.md5sum`, `SHA256SUMS`/`SHA512SUMS`/`MD5SUMS`, and `checksum` files in the same location. If nothing usable is found, it calculates the downloaded file checksum locally. When `--upload` is used, the same checksum is also computed on the remote server and compared.
 
 If the `known_hosts` entry is missing, add it first with:
 

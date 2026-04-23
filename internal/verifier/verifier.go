@@ -42,27 +42,36 @@ func VerifyFileHash(filePath, expectedHash, algorithm string) error {
 		return fmt.Errorf("expected checksum cannot be empty")
 	}
 
-	h, algoName, err := hashForAlgorithm(algorithm)
+	actualHash, _, err := CalculateFileHash(filePath, algorithm)
 	if err != nil {
 		return err
 	}
 
+	if actualHash != expectedHash {
+		return fmt.Errorf("try again")
+	}
+
+	return nil
+}
+
+func CalculateFileHash(filePath, algorithm string) (string, string, error) {
+
+	h, algoName, err := hashForAlgorithm(algorithm)
+	if err != nil {
+		return "", "", err
+	}
+
 	f, err := os.Open(filePath)
 	if err != nil {
-		return fmt.Errorf("open file for checksum: %w", err)
+		return "", "", fmt.Errorf("open file for checksum: %w", err)
 	}
 	defer f.Close()
 
 	if _, err := io.Copy(h, f); err != nil {
-		return fmt.Errorf("compute checksum: %w", err)
+		return "", "", fmt.Errorf("compute checksum: %w", err)
 	}
 
-	actualHash := hex.EncodeToString(h.Sum(nil))
-	if actualHash != expectedHash {
-		return fmt.Errorf("checksum mismatch (%s): expected %s, got %s", algoName, expectedHash, actualHash)
-	}
-
-	return nil
+	return hex.EncodeToString(h.Sum(nil)), algoName, nil
 }
 
 func hashForAlgorithm(algorithm string) (hash.Hash, string, error) {

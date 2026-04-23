@@ -31,6 +31,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -49,7 +50,11 @@ type Config struct {
 	KnownHosts string
 	LocalFile  string
 	RemotePath string
+	Checksum   string
+	Algorithm  string
 }
+
+var remoteChecksumPattern = regexp.MustCompile(`(?i)\b([a-f0-9]{32}|[a-f0-9]{64}|[a-f0-9]{128})\b`)
 
 func UploadFile(cfg Config) error {
 	if cfg.Host == "" || cfg.User == "" {
@@ -118,7 +123,92 @@ func UploadFile(cfg Config) error {
 	}
 
 	fmt.Printf("Uploaded %s to %s:%s (%.2f MB)\n", cfg.LocalFile, cfg.Host, remoteFile, float64(written)/(1024*1024))
+
+	if strings.TrimSpace(cfg.Checksum) != "" {
+		if err := verifyRemoteChecksum(conn, remoteFile, cfg.Checksum, cfg.Algorithm); err != nil {
+			return err
+		}
+		fmt.Println("ok")
+	}
+
 	return nil
+}
+
+func verifyRemoteChecksum(conn *ssh.Client, remoteFile, expectedChecksum, algorithm string) error {
+	commands := checksumCommands(remoteFile, algorithm)
+	var lastErr error
+	for _, command := range commands {
+		actualChecksum, err := runRemoteChecksum(conn, command)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		if actualChecksum != strings.ToLower(strings.TrimSpace(expectedChecksum)) {
+			return fmt.Errorf("try again")
+		}
+
+		return nil
+	}
+
+	if lastErr != nil {
+		return fmt.Errorf("remote checksum command failed: %w", lastErr)
+	}
+
+	return fmt.Errorf("remote checksum command failed")
+}
+
+func runRemoteChecksum(conn *ssh.Client, command string) (string, error) {
+	session, err := conn.NewSession()
+	if err != nil {
+		return "", fmt.Errorf("create ssh session: %w", err)
+	}
+	defer session.Close()
+
+	output, err := session.CombinedOutput(command)
+	if err != nil {
+		return "", fmt.Errorf("run %q: %w (%s)", command, err, strings.TrimSpace(string(output)))
+	}
+
+	checksum := remoteChecksumPattern.FindString(strings.ToLower(string(output)))
+	if checksum == "" {
+		return "", fmt.Errorf("no checksum found in command output: %s", strings.TrimSpace(string(output)))
+	}
+
+	return checksum, nil
+}
+
+func checksumCommands(remoteFile, algorithm string) []string {
+	quotedPath := shellQuote(remoteFile)
+	switch normalizeAlgorithm(algorithm) {
+	case "sha512":
+		return []string{
+			"sha512sum " + quotedPath,
+			"shasum -a 512 " + quotedPath,
+		}
+	case "md5":
+		return []string{
+			"md5sum " + quotedPath,
+			"md5 -q " + quotedPath,
+		}
+	default:
+		return []string{
+			"sha256sum " + quotedPath,
+			"shasum -a 256 " + quotedPath,
+		}
+	}
+}
+
+func normalizeAlgorithm(algorithm string) string {
+	algorithm = strings.ToLower(strings.TrimSpace(algorithm))
+	if algorithm == "" {
+		return "sha256"
+	}
+	return algorithm
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
 
 func buildAuth(password, keyPath string) ([]ssh.AuthMethod, error) {
