@@ -48,7 +48,7 @@ func VerifyFileHash(filePath, expectedHash, algorithm string) error {
 	}
 
 	if actualHash != expectedHash {
-		return fmt.Errorf("try again")
+		return fmt.Errorf("checksum verification failed: expected %s, got %s", expectedHash, actualHash)
 	}
 
 	return nil

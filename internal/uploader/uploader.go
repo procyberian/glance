@@ -128,7 +128,7 @@ func UploadFile(cfg Config) error {
 		if err := verifyRemoteChecksum(conn, remoteFile, cfg.Checksum, cfg.Algorithm); err != nil {
 			return err
 		}
-		fmt.Println("ok")
+		fmt.Println("Remote checksum verified")
 	}
 
 	return nil
@@ -145,7 +145,7 @@ func verifyRemoteChecksum(conn *ssh.Client, remoteFile, expectedChecksum, algori
 		}
 
 		if actualChecksum != strings.ToLower(strings.TrimSpace(expectedChecksum)) {
-			return fmt.Errorf("try again")
+			return fmt.Errorf("remote checksum verification failed: expected %s, got %s", strings.ToLower(strings.TrimSpace(expectedChecksum)), actualChecksum)
 		}
 
 		return nil
