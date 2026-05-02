@@ -14,6 +14,8 @@ You can install the latest `v11` release directly with:
 go install github.com/procyberian/glance/v11@latest
 ```
 
+This command builds the binary for the current machine's `GOOS` and `GOARCH`. It does not fetch one of the release archive files; it compiles locally, so the resulting binary matches the user's own architecture.
+
 You can also download the source and build it locally:
 
 ```bash
@@ -31,6 +33,14 @@ Binary archives for `v11.0.2` are distributed from the project release pages:
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
 Look for the `v11.0.2` release and download the asset that matches your platform.
+
+Architecture mapping:
+
+- Linux x86_64: `glance-linux-amd64.tar.gz`
+- Linux ARM64: `glance-linux-arm64.tar.gz`
+- macOS Intel: `glance-darwin-amd64.tar.gz`
+- macOS Apple Silicon: `glance-darwin-arm64.tar.gz`
+- Windows x86_64: `glance-windows-amd64.zip`
 
 Planned asset names for this release:
 

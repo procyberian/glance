@@ -14,6 +14,8 @@ En güncel `v11` sürümünü doğrudan şu komutla kurabilirsiniz:
 go install github.com/procyberian/glance/v11@latest
 ```
 
+Bu komut release arşivlerinden birini indirmez. Mevcut makinenin `GOOS` ve `GOARCH` değerlerine göre yerelde derleme yapar; yani oluşan binary kullanıcının kendi mimarisine uygun olur.
+
 Kaynak kodu indirip yerelde derlemek için:
 
 ```bash
@@ -31,6 +33,14 @@ go build -o glance .
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
 `v11.0.2` sürümünü açıp platformunuza uygun asset dosyasını indirin.
+
+Mimari eşlemesi:
+
+- Linux x86_64: `glance-linux-amd64.tar.gz`
+- Linux ARM64: `glance-linux-arm64.tar.gz`
+- macOS Intel: `glance-darwin-amd64.tar.gz`
+- macOS Apple Silicon: `glance-darwin-arm64.tar.gz`
+- Windows x86_64: `glance-windows-amd64.zip`
 
 Bu sürüm için planlanan asset adları:
 
