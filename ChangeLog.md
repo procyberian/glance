@@ -98,6 +98,15 @@ Generated on: 2026-04-23T00:25:48+03:00
 - Scan timeout made configurable and parser hardened against malformed ordering.
 - Timeout logic moved closer to scan execution paths to reduce background-work risk after timeout.
 
+### 2026-05-02 - README Project Statement Update
+
+- Added a new project statement to `README.md` in Turkey Turkish explaining that:
+	- the project was initiated with Microsoft Copilot assistance,
+	- it is continuously updated under human guidance,
+	- it is offered as Free Software under the MIT License,
+	- contributions are welcome and PlusClouds accepts contributions in a friendly manner.
+- Added the equivalent U.S. English project statement to `README.en.md` with the same intent and contribution policy.
+
 ## Commit History
 - bec52f4 2026-04-22 Mert Gör: ilk MIT/Expat ile
 - 4cf8635 2026-04-22 Mert Gör: initial commit

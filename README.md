@@ -2,6 +2,8 @@
 
 Go ile yazılmış modüler bir ISO indirme, doğrulama ve yükleme aracıdır.
 
+Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır; ancak insan yönlendirmesiyle sürekli olarak güncellenmektedir. Proje, MIT lisansı altında Özgür Yazılım olarak sunulur ve katkılara açıktır. PlusClouds, topluluktan gelen katkıları arkadaşça memnuniyetle kabul eder.
+
 Bu sürümle birlikte araç artık:
 
 - FTP dizinlerini özyineli olarak tarar

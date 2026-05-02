@@ -2,6 +2,8 @@
 
 `glance` is a modular Go CLI for ISO discovery, download verification, resume-aware transfers, and SSH/SFTP delivery.
 
+This project was initiated with the help of AI-powered Microsoft Copilot, but it is continuously updated under human guidance. The project is offered as Free Software under the MIT License and is open to contributions. PlusClouds warmly and amicably welcomes community contributions.
+
 This release adds:
 
 - recursive FTP ISO discovery
