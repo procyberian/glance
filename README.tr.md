@@ -40,6 +40,12 @@ Bu sürüm için planlanan asset adları:
 - `glance-darwin-arm64.tar.gz`
 - `glance-windows-amd64.zip`
 
+API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyalarını otomatik yüklemek için:
+
+```bash
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.0
+```
+
 Bu sürümle birlikte araç artık:
 
 - FTP dizinlerini özyineli olarak tarar

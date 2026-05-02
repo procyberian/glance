@@ -40,6 +40,12 @@ Planned asset names for this release:
 - `glance-darwin-arm64.tar.gz`
 - `glance-windows-amd64.zip`
 
+To publish the release entry and upload these assets automatically after setting API tokens:
+
+```bash
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.0
+```
+
 This release adds:
 
 - recursive FTP ISO discovery
