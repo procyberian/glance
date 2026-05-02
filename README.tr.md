@@ -107,9 +107,9 @@ Bu sürümle birlikte araç artık:
 ## Özellikler
 
 - `--download`: ISO indirir veya yerel ISO dosyasını kopyalar
-- `--iso`, `--url`: HTTP, HTTPS, FTP veya yerel kaynak kabul eder
+- `--iso`, `--url`: HTTP, HTTPS, FTP veya yerel kaynak kabul eder (`ftp://` için `--allow-insecure-ftp` gerekir)
 - `--checksum`: Verilen checksum ile doğrular; verilmezse uygun durumda otomatik bulur veya yerel olarak hesaplar
-- `--checksum-algo`: `sha256`, `sha512`, `md5`
+- `--checksum-algo`: `sha256`, `sha512`
 - Canlı ilerleme: yüzde, anlık hız, ortalama hız, ağ hızı, ETA
 - FTP tarama: toplam ISO sayısını önce bulur, sonra checksum çözümü için tek ilerleme çubuğu gösterir
 - HTTP/HTTPS tarama: genel erişime açık dizin sayfalarını özyineli gezer, aynı sunucu üzerinde üst ve alt dizinleri dikkate alır
@@ -176,7 +176,7 @@ Bu paket ayrıca `DownloadISO`, `ListFTPISOs`, `ListHTTPISOs`, `ResolveChecksum`
 ### 2. FTP dizinini tara, listele, seç ve indir
 
 ```bash
-./glance --download --iso ftp://ftp.example.com/iso/
+./glance --download --allow-insecure-ftp --iso ftp://ftp.example.com/iso/
 ```
 
 Beklenen akış:
@@ -208,7 +208,7 @@ Bu modda araç:
 ### 3.1 Doğrudan FTP ISO dosyasını indir
 
 ```bash
-./glance --download --iso ftp://ftp.example.com/iso/example.iso
+./glance --download --allow-insecure-ftp --iso ftp://ftp.example.com/iso/example.iso
 ```
 
 Bu kullanımda araç FTP sunucusundan dosyayı doğrudan indirir. Yarım kalan `.download` dosyası varsa sürdürmeyi dener; sunucu desteklemiyorsa güvenli şekilde sıfırdan yeniden başlatır.
@@ -368,8 +368,8 @@ go build -o glance .
 
 HTTP/HTTPS için:
 
-- `dosya.iso.sha256sum` / `dosya.iso.sha512sum` / `dosya.iso.md5sum`
-- `SHA256SUMS` / `SHA512SUMS` / `MD5SUMS`
+- `dosya.iso.sha256sum` / `dosya.iso.sha512sum`
+- `SHA256SUMS` / `SHA512SUMS`
 - `checksum`
 
 FTP için:
@@ -400,6 +400,7 @@ Bulunamazsa yerel hash hesaplanır.
 - `--key-name`
 - `--iso`
 - `--url`
+- `--allow-insecure-ftp`
 - `--checksum`
 - `--checksum-algo`
 - `--output`

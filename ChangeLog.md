@@ -1,6 +1,27 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-03 - Security Enforcement and CI Gate
+
+- Added `.github/workflows/security.yml` to enforce `go mod verify`, `go build`, `go test`, `go vet`, and `govulncheck` in CI.
+- Updated module dependencies and upgraded `golang.org/x/net` to `v0.53.0`.
+- Added strict FTP policy: `ftp://` sources are now blocked by default and require explicit `--allow-insecure-ftp` opt-in.
+- Added regression tests for checksum algorithm restrictions and FTP opt-in parsing under `internal/cli`, `internal/downloader`, and `internal/verifier`.
+
+## 2026-05-03 - Strict Hash Policy
+
+- Removed `md5` support from CLI checksum selection and now allow only `sha256` and `sha512`.
+- Removed `--allow-weak-hash` and all weak-hash opt-in paths.
+- Updated downloader, verifier, and uploader checksum logic to reject unsupported algorithms consistently.
+- Updated README and help text to reflect strict hash policy and checksum discovery candidates.
+
+## 2026-05-02 - Checksum Security Hardening
+
+- Hardened automatic checksum parsing so multi-entry checksum files must match the selected ISO instead of accepting the first hash blindly.
+- Added explicit request timeouts for HTTP checksum candidate retrieval to reduce hanging network operations.
+- Introduced `--allow-weak-hash` and disabled `--checksum-algo md5` by default unless this opt-in flag is provided.
+- Updated README and CLI help references to document weak-hash opt-in behavior.
+
 ## 2026-05-02 - v11.0.2 Release Preparation
 
 - Added `release-notes/v11.0.2.md` for the new patch tag that carries the public `pkg/glance` library surface.

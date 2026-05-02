@@ -20,12 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// File purpose: Verifies file checksums using sha256, sha512, or md5 against expected values.
+// File purpose: Verifies file checksums using sha256 or sha512 against expected values.
 
 package verifier
 
 import (
-	"crypto/md5"
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -80,10 +79,8 @@ func hashForAlgorithm(algorithm string) (hash.Hash, string, error) {
 		return sha256.New(), "sha256", nil
 	case "sha512":
 		return sha512.New(), "sha512", nil
-	case "md5":
-		return md5.New(), "md5", nil
 	default:
-		return nil, "", fmt.Errorf("unsupported checksum algorithm: %s (supported: sha256, sha512, md5)", algorithm)
+		return nil, "", fmt.Errorf("unsupported checksum algorithm: %s (supported: sha256, sha512)", algorithm)
 	}
 }
 
@@ -91,6 +88,5 @@ func normalizeHash(v string) string {
 	v = strings.TrimSpace(v)
 	v = strings.TrimPrefix(strings.ToLower(v), "sha256:")
 	v = strings.TrimPrefix(v, "sha512:")
-	v = strings.TrimPrefix(v, "md5:")
 	return v
 }

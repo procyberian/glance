@@ -135,7 +135,10 @@ func UploadFile(cfg Config) error {
 }
 
 func verifyRemoteChecksum(conn *ssh.Client, remoteFile, expectedChecksum, algorithm string) error {
-	commands := checksumCommands(remoteFile, algorithm)
+	commands, err := checksumCommands(remoteFile, algorithm)
+	if err != nil {
+		return err
+	}
 	var lastErr error
 	for _, command := range commands {
 		actualChecksum, err := runRemoteChecksum(conn, command)
@@ -178,33 +181,38 @@ func runRemoteChecksum(conn *ssh.Client, command string) (string, error) {
 	return checksum, nil
 }
 
-func checksumCommands(remoteFile, algorithm string) []string {
+func checksumCommands(remoteFile, algorithm string) ([]string, error) {
 	quotedPath := shellQuote(remoteFile)
-	switch normalizeAlgorithm(algorithm) {
+	algo, err := normalizeAlgorithm(algorithm)
+	if err != nil {
+		return nil, err
+	}
+
+	switch algo {
 	case "sha512":
 		return []string{
 			"sha512sum " + quotedPath,
 			"shasum -a 512 " + quotedPath,
-		}
-	case "md5":
-		return []string{
-			"md5sum " + quotedPath,
-			"md5 -q " + quotedPath,
-		}
-	default:
+		}, nil
+	case "sha256":
 		return []string{
 			"sha256sum " + quotedPath,
 			"shasum -a 256 " + quotedPath,
-		}
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported checksum algorithm: %s (supported: sha256, sha512)", algorithm)
 	}
 }
 
-func normalizeAlgorithm(algorithm string) string {
+func normalizeAlgorithm(algorithm string) (string, error) {
 	algorithm = strings.ToLower(strings.TrimSpace(algorithm))
 	if algorithm == "" {
-		return "sha256"
+		return "sha256", nil
 	}
-	return algorithm
+	if algorithm != "sha256" && algorithm != "sha512" {
+		return "", fmt.Errorf("unsupported checksum algorithm: %s (supported: sha256, sha512)", algorithm)
+	}
+	return algorithm, nil
 }
 
 func shellQuote(value string) string {

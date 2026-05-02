@@ -107,9 +107,9 @@ This release adds:
 ## Features
 
 - `--download`: download an ISO or copy a local ISO file
-- `--iso`, `--url`: accept HTTP, HTTPS, FTP, or local sources
+- `--iso`, `--url`: accept HTTP, HTTPS, FTP, or local sources (`ftp://` requires `--allow-insecure-ftp`)
 - `--checksum`: verify against a provided checksum or auto-discovered checksum when available
-- `--checksum-algo`: `sha256`, `sha512`, `md5`
+- `--checksum-algo`: `sha256`, `sha512`
 - live transfer progress with percentage, instant speed, average speed, network speed, and ETA
 - FTP scanning with total ISO detection first, then checksum resolution progress in a single progress bar
 - HTTP/HTTPS scanning that traverses public directory listings recursively within the same host
@@ -176,7 +176,7 @@ The same package also exposes direct wrappers for `DownloadISO`, `ListFTPISOs`, 
 ### 2. Scan an FTP directory, list ISOs, choose one, and download it
 
 ```bash
-./glance --download --iso ftp://ftp.example.com/iso/
+./glance --download --allow-insecure-ftp --iso ftp://ftp.example.com/iso/
 ```
 
 Expected flow:
@@ -208,7 +208,7 @@ In this mode the tool:
 ### 3.1 Download a direct FTP ISO file
 
 ```bash
-./glance --download --iso ftp://ftp.example.com/iso/example.iso
+./glance --download --allow-insecure-ftp --iso ftp://ftp.example.com/iso/example.iso
 ```
 
 In this mode the tool downloads the file directly from FTP. If a partial `.download` file exists it attempts resume first; if resume is not supported by the server, it safely restarts from zero.
@@ -368,8 +368,8 @@ go build -o glance .
 
 For HTTP/HTTPS:
 
-- `file.iso.sha256sum` / `file.iso.sha512sum` / `file.iso.md5sum`
-- `SHA256SUMS` / `SHA512SUMS` / `MD5SUMS`
+- `file.iso.sha256sum` / `file.iso.sha512sum`
+- `SHA256SUMS` / `SHA512SUMS`
 - `checksum`
 
 For FTP:
@@ -400,6 +400,7 @@ If no remote checksum can be used, the tool calculates the file hash locally.
 - `--key-name`
 - `--iso`
 - `--url`
+- `--allow-insecure-ftp`
 - `--checksum`
 - `--checksum-algo`
 - `--output`

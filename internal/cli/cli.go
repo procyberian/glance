@@ -45,31 +45,32 @@ import (
 )
 
 type Config struct {
-	Download      bool
-	NoResume      bool
-	Upload        bool
-	ScanTimeout   int
-	Keygen        bool
-	KeyAlgo       string
-	KeyOutputDir  string
-	KeyName       string
-	ShowLicense   bool
-	ShowHelp      bool
-	ISOSource     string
-	Checksum      string
-	ChecksumAlgo  string
-	OutputDir     string
-	OutputPath    string
-	OutputSet     bool
-	OutputPathSet bool
-	FileToUpload  string
-	Host          string
-	Port          int
-	User          string
-	Password      string
-	SSHKey        string
-	KnownHosts    string
-	RemotePath    string
+	Download         bool
+	NoResume         bool
+	Upload           bool
+	ScanTimeout      int
+	Keygen           bool
+	KeyAlgo          string
+	KeyOutputDir     string
+	KeyName          string
+	ShowLicense      bool
+	ShowHelp         bool
+	ISOSource        string
+	Checksum         string
+	ChecksumAlgo     string
+	AllowInsecureFTP bool
+	OutputDir        string
+	OutputPath       string
+	OutputSet        bool
+	OutputPathSet    bool
+	FileToUpload     string
+	Host             string
+	Port             int
+	User             string
+	Password         string
+	SSHKey           string
+	KnownHosts       string
+	RemotePath       string
 }
 
 func Parse(args []string) (Config, error) {
@@ -101,8 +102,9 @@ func Parse(args []string) (Config, error) {
 	fs.BoolVar(&cfg.ShowHelp, "help", false, "Show help")
 	fs.StringVar(&cfg.ISOSource, "iso", "", "ISO source URL/path (required for --download)")
 	fs.StringVar(&cfg.ISOSource, "url", "", "ISO source URL/path (alias of --iso)")
+	fs.BoolVar(&cfg.AllowInsecureFTP, "allow-insecure-ftp", false, "Allow insecure FTP sources (not recommended)")
 	fs.StringVar(&cfg.Checksum, "checksum", "", "Expected checksum for downloaded ISO (optional; auto-discovered for HTTP/FTP or calculated locally)")
-	fs.StringVar(&cfg.ChecksumAlgo, "checksum-algo", "sha256", "Checksum algorithm: sha256, sha512, md5")
+	fs.StringVar(&cfg.ChecksumAlgo, "checksum-algo", "sha256", "Checksum algorithm: sha256, sha512")
 	fs.StringVar(&cfg.OutputDir, "output", "./downloads", "Download output directory")
 	fs.StringVar(&cfg.OutputPath, "output-path", "", "Full destination file path for a single downloaded ISO")
 	fs.StringVar(&cfg.FileToUpload, "file", "", "Local file path to upload")
@@ -147,6 +149,19 @@ func Parse(args []string) (Config, error) {
 		return cfg, fmt.Errorf("invalid --iso value %q; expected URL/path (example: --iso https://server/path/ --scan-timeout 60)", strings.TrimSpace(cfg.ISOSource))
 	}
 
+	if cfg.Download && isFTPSource(cfg.ISOSource) && !cfg.AllowInsecureFTP {
+		return cfg, fmt.Errorf("ftp:// sources are disabled by default; re-run with --allow-insecure-ftp to accept insecure FTP transport")
+	}
+
+	algo := normalizedAlgo(cfg.ChecksumAlgo)
+	switch algo {
+	case "sha256", "sha512":
+	default:
+		return cfg, fmt.Errorf("unsupported checksum algorithm: %s (supported: sha256, sha512)", cfg.ChecksumAlgo)
+	}
+
+	cfg.ChecksumAlgo = algo
+
 	return cfg, nil
 }
 
@@ -159,7 +174,7 @@ Usage:
   ./glance --keygen --key-algo rsa --key-output ~/.ssh --key-name id_rsa_glance
   ./glance --keygen --key-algo ecdsa
 	./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso
-	./glance --download --iso ftp://ftp.example.com/iso/
+	./glance --download --allow-insecure-ftp --iso ftp://ftp.example.com/iso/
 	./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
   ./glance --download --iso /home/user/isos/archlinux-x86_64.iso --checksum <sha256sum>
   ./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_ed25519
@@ -177,8 +192,9 @@ Flags:
   --key-name        Key filename without extension (default: id_<algo>)
 	--iso             ISO source URL/path (HTTP, FTP, local) (required for --download)
   --url             Alias of --iso
+	--allow-insecure-ftp Allow insecure FTP sources (not recommended)
 	--checksum        Expected checksum for downloaded ISO (optional; auto-discovered for HTTP/FTP or calculated locally)
-  --checksum-algo   Checksum algorithm: sha256, sha512, md5 (default: sha256)
+	--checksum-algo   Checksum algorithm: sha256, sha512 (default: sha256)
   --output          Download output directory (default: ./downloads)
 	--output-path     Full destination file path for a single downloaded ISO
   --file            Local file path for upload
@@ -200,6 +216,12 @@ MIT License:
 func Run(cfg Config) error {
 	var downloadedPath string
 
+	algo := normalizedAlgo(cfg.ChecksumAlgo)
+	if algo != "sha256" && algo != "sha512" {
+		return fmt.Errorf("unsupported checksum algorithm: %s (supported: sha256, sha512)", cfg.ChecksumAlgo)
+	}
+	cfg.ChecksumAlgo = algo
+
 	if cfg.Keygen {
 		if err := runKeygen(cfg); err != nil {
 			return err
@@ -219,6 +241,10 @@ func Run(cfg Config) error {
 			return fmt.Errorf("--iso (or --url) is required for --download")
 		}
 
+		if isFTPSource(cfg.ISOSource) && !cfg.AllowInsecureFTP {
+			return fmt.Errorf("ftp:// sources are disabled by default; re-run with --allow-insecure-ftp to accept insecure FTP transport")
+		}
+
 		type selectedDownload struct {
 			Source   string
 			Checksum string
@@ -229,7 +255,7 @@ func Run(cfg Config) error {
 		scanTimeout := scanTimeoutDuration(cfg.ScanTimeout)
 
 		if isHTTPDirectorySource(cfg.ISOSource) {
-			selectedOptions, selectErr := promptHTTPISOSelections(cfg.ISOSource, cfg.ChecksumAlgo, scanTimeout)
+			selectedOptions, selectErr := promptHTTPISOSelections(cfg.ISOSource, cfg.ChecksumAlgo, scanTimeout, cfg.AllowInsecureFTP)
 			if selectErr != nil {
 				return selectErr
 			}
@@ -587,8 +613,8 @@ func shouldTryFTPFirst(source string) bool {
 	return strings.HasPrefix(host, "ftp.") || strings.Contains(host, ".ftp.")
 }
 
-func promptHTTPISOSelections(source, algorithm string, scanTimeout time.Duration) ([]downloader.FTPISOOption, error) {
-	if shouldTryFTPFirst(source) {
+func promptHTTPISOSelections(source, algorithm string, scanTimeout time.Duration, allowInsecureFTP bool) ([]downloader.FTPISOOption, error) {
+	if allowInsecureFTP && shouldTryFTPFirst(source) {
 		ftpSource, ok := toFTPDirectoryURL(source)
 		if !ok {
 			goto httpFallback

@@ -26,6 +26,7 @@ package downloader
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -44,6 +45,8 @@ import (
 var checksumLinePattern = regexp.MustCompile(`(?i)\b([a-f0-9]{32}|[a-f0-9]{64}|[a-f0-9]{128})\b`)
 var hrefISORegex = regexp.MustCompile(`(?i)href\s*=\s*["']([^"']+\.iso(?:\?[^"']*)?)["']`)
 var hrefAnyRegex = regexp.MustCompile(`(?i)href\s*=\s*["']([^"']+)["']`)
+
+const checksumCandidateFetchTimeout = 15 * time.Second
 
 type FTPISOOption struct {
 	Name     string
@@ -433,7 +436,6 @@ func checksumCandidates(source, algorithm string) ([]string, error) {
 	suffix := map[string]string{
 		"sha256": ".sha256sum",
 		"sha512": ".sha512sum",
-		"md5":    ".md5sum",
 	}[algoName]
 	if suffix == "" {
 		return nil, fmt.Errorf("unsupported checksum algorithm: %s", algorithm)
@@ -442,7 +444,6 @@ func checksumCandidates(source, algorithm string) ([]string, error) {
 	indexName := map[string]string{
 		"sha256": "SHA256SUMS",
 		"sha512": "SHA512SUMS",
-		"md5":    "MD5SUMS",
 	}[algoName]
 
 	return []string{
@@ -453,7 +454,16 @@ func checksumCandidates(source, algorithm string) ([]string, error) {
 }
 
 func fetchChecksumCandidate(candidateURL, isoName string) (string, error) {
-	resp, err := http.Get(candidateURL)
+	ctx, cancel := context.WithTimeout(context.Background(), checksumCandidateFetchTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, candidateURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("build request for %s: %w", candidateURL, err)
+	}
+
+	client := &http.Client{Timeout: checksumCandidateFetchTimeout}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("fetch %s: %w", candidateURL, err)
 	}
@@ -474,6 +484,7 @@ func fetchChecksumCandidate(candidateURL, isoName string) (string, error) {
 func extractChecksum(r io.Reader, isoName string) (string, error) {
 	scanner := bufio.NewScanner(r)
 	var fallback string
+	checksumCount := 0
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
@@ -484,6 +495,8 @@ func extractChecksum(r io.Reader, isoName string) (string, error) {
 		if checksum == "" {
 			continue
 		}
+
+		checksumCount++
 
 		if fallback == "" {
 			fallback = strings.ToLower(checksum)
@@ -504,8 +517,12 @@ func extractChecksum(r io.Reader, isoName string) (string, error) {
 		return "", err
 	}
 
-	if fallback != "" {
+	if fallback != "" && (isoName == "" || checksumCount == 1) {
 		return fallback, nil
+	}
+
+	if isoName != "" {
+		return "", fmt.Errorf("no checksum entry matched ISO %q", isoName)
 	}
 
 	return "", fmt.Errorf("no checksum entry found")
@@ -1096,12 +1113,10 @@ func resolveFTPChecksumForPathWithTimeout(conn *ftp.ServerConn, isoPath, algorit
 	suffix := map[string]string{
 		"sha256": ".sha256sum",
 		"sha512": ".sha512sum",
-		"md5":    ".md5sum",
 	}[algorithm]
 	indexName := map[string]string{
 		"sha256": "SHA256SUMS",
 		"sha512": "SHA512SUMS",
-		"md5":    "MD5SUMS",
 	}[algorithm]
 
 	candidates := []string{
@@ -1254,9 +1269,9 @@ func normalizeChecksumAlgorithm(algorithm string) (string, error) {
 		algo = "sha256"
 	}
 	switch algo {
-	case "sha256", "sha512", "md5":
+	case "sha256", "sha512":
 		return algo, nil
 	default:
-		return "", fmt.Errorf("unsupported checksum algorithm: %s", algorithm)
+		return "", fmt.Errorf("unsupported checksum algorithm: %s (supported: sha256, sha512)", algorithm)
 	}
 }
