@@ -28,8 +28,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/procyberian/glance/internal/cli"
-	licensecontent "github.com/procyberian/glance/internal/license"
+	"github.com/procyberian/glance/v10/internal/cli"
+	licensecontent "github.com/procyberian/glance/v10/internal/license"
 )
 
 func main() {

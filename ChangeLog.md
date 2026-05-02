@@ -1,12 +1,12 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
-## 2026-05-02 - Module Path and Publishing Fix
+## 2026-05-02 - Module Path and Publishing Fix (v10)
 
-- Updated `go.mod` module path from `glance` to `github.com/procyberian/glance` to align with the canonical GitHub repository location.
-- Updated all internal import paths across `main.go` and `internal/cli/cli.go` to use the fully qualified module path `github.com/procyberian/glance/internal/...`.
-- Project can now be installed directly via `go install github.com/procyberian/glance@latest`.
-- To publish a release: tag with `git tag vX.Y.Z` and push the tag; Go module proxy will index it automatically.
+- Updated `go.mod` module path from `glance` to `github.com/procyberian/glance/v10` to comply with Go semantic versioning rules (v2+ requires major version suffix in module path).
+- Updated all internal import paths across `main.go` and `internal/cli/cli.go` to use `github.com/procyberian/glance/v10/internal/...`.
+- Project can now be installed directly via `go install github.com/procyberian/glance/v10@latest`.
+- To publish a release: tag with `git tag v10.x.x` and push the tag; Go module proxy will index it automatically.
 - Note: packages under `internal/` remain intentionally unexportable; move to `pkg/` if a reusable library surface is desired in the future.
 
 ## 2026-05-02 - README Language Default Update
