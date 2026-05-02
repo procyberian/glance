@@ -6,6 +6,7 @@ Generated on: 2026-04-23T00:25:48+03:00
 - Updated the Go module path from `github.com/procyberian/glance/v10` to `github.com/procyberian/glance/v11` so the new major release remains valid for Go module consumers.
 - Updated internal imports in `main.go` and `internal/cli/cli.go` to the `v11` module path.
 - Updated `README.md` and `README.tr.md` to explicitly state that the project has been published and documented how to install it with `go install github.com/procyberian/glance/v11@latest` or build it from the `v11.0.0` tag.
+- Added a dedicated binary download section to both README files and prepared reusable release notes in `release-notes/v11.0.0.md`.
 - Prepared the repository for signed commit, signed `v11.0.0` tag creation, and push to both `PSD` and `codeberg` remotes.
 
 ## 2026-05-02 - Module Path and Publishing Fix (v10)

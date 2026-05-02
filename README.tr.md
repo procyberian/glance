@@ -23,6 +23,23 @@ git checkout v11.0.0
 go build -o glance .
 ```
 
+## Binary İndirmeleri
+
+`v11.0.0` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
+
+- GitHub Releases: https://github.com/procyberian/glance/releases
+- Codeberg Releases: https://codeberg.org/procyberian/glance/releases
+
+`v11.0.0` sürümünü açıp platformunuza uygun asset dosyasını indirin.
+
+Bu sürüm için planlanan asset adları:
+
+- `glance-linux-amd64.tar.gz`
+- `glance-linux-arm64.tar.gz`
+- `glance-darwin-amd64.tar.gz`
+- `glance-darwin-arm64.tar.gz`
+- `glance-windows-amd64.zip`
+
 Bu sürümle birlikte araç artık:
 
 - FTP dizinlerini özyineli olarak tarar

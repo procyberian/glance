@@ -23,6 +23,23 @@ git checkout v11.0.0
 go build -o glance .
 ```
 
+## Binary Downloads
+
+Binary archives for `v11.0.0` are distributed from the project release pages:
+
+- GitHub Releases: https://github.com/procyberian/glance/releases
+- Codeberg Releases: https://codeberg.org/procyberian/glance/releases
+
+Look for the `v11.0.0` release and download the asset that matches your platform.
+
+Planned asset names for this release:
+
+- `glance-linux-amd64.tar.gz`
+- `glance-linux-arm64.tar.gz`
+- `glance-darwin-amd64.tar.gz`
+- `glance-darwin-arm64.tar.gz`
+- `glance-windows-amd64.zip`
+
 This release adds:
 
 - recursive FTP ISO discovery
