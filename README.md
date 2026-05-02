@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.0` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.1` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -19,18 +19,18 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.0
+git checkout v11.0.1
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.0` are distributed from the project release pages:
+Binary archives for `v11.0.1` are distributed from the project release pages:
 
-- GitHub Releases: https://github.com/procyberian/glance/releases
-- Codeberg Releases: https://codeberg.org/procyberian/glance/releases
+- GitHub Releases: <https://github.com/procyberian/glance/releases>
+- Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.0` release and download the asset that matches your platform.
+Look for the `v11.0.1` release and download the asset that matches your platform.
 
 Planned asset names for this release:
 
@@ -43,7 +43,7 @@ Planned asset names for this release:
 To publish the release entry and upload these assets automatically after setting API tokens:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.0
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.1
 ```
 
 Token guidance:
@@ -55,10 +55,10 @@ Token guidance:
 Useful script modes:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.0
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.0
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.0
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.0.md v11.0.0
+./scripts/publish-release.sh --dry-run v11.0.1
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.1
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.1
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.1.md v11.0.1
 ```
 
 This release adds:
@@ -123,6 +123,38 @@ go mod tidy
 go build -o glance .
 ```
 
+## Library Usage
+
+The tagged project now exposes a reusable public package at `github.com/procyberian/glance/v11/pkg/glance`.
+
+Example:
+
+```go
+package main
+
+import (
+    "log"
+
+    glance "github.com/procyberian/glance/v11/pkg/glance"
+)
+
+func main() {
+    result, err := glance.DownloadAndVerify(glance.DownloadOptions{
+        Source:            "https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso",
+        OutputDir:         "./downloads",
+        ChecksumAlgorithm: "sha256",
+        AllowResume:       true,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("downloaded=%s checksum=%s algo=%s", result.Path, result.Checksum, result.Algorithm)
+}
+```
+
+The same package also exposes direct wrappers for `DownloadISO`, `ListFTPISOs`, `ListHTTPISOs`, `ResolveChecksum`, `VerifyFileHash`, `CalculateFileHash`, `UploadFile`, `GenerateKeyPair`, `Parse`, `Run`, and `Execute`.
+
 ## End User Guide
 
 ### 1. Download a direct ISO URL
@@ -144,8 +176,8 @@ Detecting total ISO count...
 Found 100 total ISOs
 [==========----------] 50.00% | 50/100 ISOs
 FTP ISO list:
-	1) example-1.iso | size: 2.80 GB | checksum: ...
-	2) example-2.iso | size: 1.90 GB | checksum: ...
+    1) example-1.iso | size: 2.80 GB | checksum: ...
+    2) example-2.iso | size: 1.90 GB | checksum: ...
 Select ISO number(s) (example: 1 or 1,3,5 or all) [1-100]:
 Which directory should the ISO be downloaded to? [default: ./downloads]:
 ```
@@ -277,8 +309,8 @@ Expected flow:
 
 ```text
 Local ISO/file candidates for upload:
-	1) downloads/ubuntu-24.04.4-live-server-amd64.iso
-	2) downloads/debian-12.11.0-amd64-netinst.iso
+    1) downloads/ubuntu-24.04.4-live-server-amd64.iso
+    2) downloads/debian-12.11.0-amd64-netinst.iso
 Select file number [1-2] or type a full path:
 SSH host/IP:
 SSH username:

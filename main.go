@@ -28,28 +28,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/procyberian/glance/v11/internal/cli"
-	licensecontent "github.com/procyberian/glance/v11/internal/license"
+	glanceapi "github.com/procyberian/glance/v11/pkg/glance"
 )
 
 func main() {
-	cfg, err := cli.Parse(os.Args[1:])
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
-	}
-
-	if cfg.ShowLicense {
-		fmt.Println(licensecontent.Text)
-		return
-	}
-
-	if cfg.ShowHelp {
-		fmt.Print(cli.HelpText())
-		return
-	}
-
-	if err := cli.Run(cfg); err != nil {
+	if err := glanceapi.Execute(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}

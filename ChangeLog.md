@@ -1,11 +1,19 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-02 - Public Library Packaging
+
+- Added a reusable public package at `pkg/glance` so tagged releases can be consumed as a Go library instead of only as a CLI binary.
+- Exposed library-safe wrappers for download, listing, checksum resolution, verification, upload, key generation, and CLI execution.
+- Updated `main.go` to use the exported package surface, keeping the CLI path aligned with the new public API.
+- Documented library import and usage examples in both `README.md` and `README.tr.md`.
+
 ## 2026-05-02 - v11.0.1 Release Preparation
 
 - Added `release-notes/v11.0.1.md` to capture the patch release scope for post-`v11.0.0` release automation and documentation updates.
 - Prepared a patch release path so Go module consumers can receive the latest repository state via `github.com/procyberian/glance/v11@v11.0.1` instead of reusing the immutable `v11.0.0` tag.
 - Confirmed that multi-architecture binaries are intended to be attached to the release entry associated with the `v11.0.1` git tag.
+- Promoted the new `pkg/glance` public API into the `v11.0.1` patch release scope and aligned README install/publish examples with that tag.
 
 ## 2026-05-02 - v11.0.0 Release Publication
 

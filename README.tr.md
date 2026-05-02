@@ -6,7 +6,7 @@ Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır
 
 ## Yayınlanan Sürüm
 
-`glance`, artık `v11` Go modül hattı ve `v11.0.0` git sürüm etiketi ile yayımlanmıştır.
+`glance`, artık `v11` Go modül hattı ve `v11.0.1` git sürüm etiketi ile yayımlanmıştır.
 
 En güncel `v11` sürümünü doğrudan şu komutla kurabilirsiniz:
 
@@ -19,18 +19,18 @@ Kaynak kodu indirip yerelde derlemek için:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.0
+git checkout v11.0.1
 go build -o glance .
 ```
 
 ## Binary İndirmeleri
 
-`v11.0.0` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
+`v11.0.1` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
 
-- GitHub Releases: https://github.com/procyberian/glance/releases
-- Codeberg Releases: https://codeberg.org/procyberian/glance/releases
+- GitHub Releases: <https://github.com/procyberian/glance/releases>
+- Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-`v11.0.0` sürümünü açıp platformunuza uygun asset dosyasını indirin.
+`v11.0.1` sürümünü açıp platformunuza uygun asset dosyasını indirin.
 
 Bu sürüm için planlanan asset adları:
 
@@ -43,7 +43,7 @@ Bu sürüm için planlanan asset adları:
 API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyalarını otomatik yüklemek için:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.0
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.1
 ```
 
 Token kapsamı önerileri:
@@ -55,10 +55,10 @@ Token kapsamı önerileri:
 Yararlı script modları:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.0
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.0
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.0
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.0.md v11.0.0
+./scripts/publish-release.sh --dry-run v11.0.1
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.1
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.1
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.1.md v11.0.1
 ```
 
 Bu sürümle birlikte araç artık:
@@ -123,6 +123,38 @@ go mod tidy
 go build -o glance .
 ```
 
+## Kütüphane Kullanımı
+
+Etiketlenmiş proje artık `github.com/procyberian/glance/v11/pkg/glance` yolunda tekrar kullanılabilir bir genel paket sunar.
+
+Örnek:
+
+```go
+package main
+
+import (
+    "log"
+
+    glance "github.com/procyberian/glance/v11/pkg/glance"
+)
+
+func main() {
+    result, err := glance.DownloadAndVerify(glance.DownloadOptions{
+        Source:            "https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso",
+        OutputDir:         "./downloads",
+        ChecksumAlgorithm: "sha256",
+        AllowResume:       true,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Printf("downloaded=%s checksum=%s algo=%s", result.Path, result.Checksum, result.Algorithm)
+}
+```
+
+Bu paket ayrıca `DownloadISO`, `ListFTPISOs`, `ListHTTPISOs`, `ResolveChecksum`, `VerifyFileHash`, `CalculateFileHash`, `UploadFile`, `GenerateKeyPair`, `Parse`, `Run` ve `Execute` sarmalayıcılarını da dışa açar.
+
 ## Son Kullanıcı Kullanım Rehberi
 
 ### 1. Doğrudan ISO indir
@@ -144,8 +176,8 @@ Detecting total ISO count...
 Found 100 total ISOs
 [==========----------] 50.00% | 50/100 ISOs
 FTP ISO list:
-	1) example-1.iso | size: 2.80 GB | checksum: ...
-	2) example-2.iso | size: 1.90 GB | checksum: ...
+    1) example-1.iso | size: 2.80 GB | checksum: ...
+    2) example-2.iso | size: 1.90 GB | checksum: ...
 Select ISO number(s) (example: 1 or 1,3,5 or all) [1-100]:
 Which directory should the ISO be downloaded to? [default: ./downloads]:
 ```
@@ -277,8 +309,8 @@ Beklenen akış:
 
 ```text
 Local ISO/file candidates for upload:
-	1) downloads/ubuntu-24.04.4-live-server-amd64.iso
-	2) downloads/debian-12.11.0-amd64-netinst.iso
+    1) downloads/ubuntu-24.04.4-live-server-amd64.iso
+    2) downloads/debian-12.11.0-amd64-netinst.iso
 Select file number [1-2] or type a full path:
 SSH host/IP:
 SSH username:
