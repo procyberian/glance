@@ -4,6 +4,25 @@
 
 This project was initiated with the help of AI-powered Microsoft Copilot, but it is continuously updated under human guidance. The project is offered as Free Software under the MIT License and is open to contributions. PlusClouds warmly and amicably welcomes community contributions.
 
+## Published Release
+
+`glance` is now published as the `v11` Go module line and as the `v11.0.0` git release tag.
+
+You can install the latest `v11` release directly with:
+
+```bash
+go install github.com/procyberian/glance/v11@latest
+```
+
+You can also download the source and build it locally:
+
+```bash
+git clone git@github.com:procyberian/glance.git
+cd glance
+git checkout v11.0.0
+go build -o glance .
+```
+
 This release adds:
 
 - recursive FTP ISO discovery

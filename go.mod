@@ -1,4 +1,4 @@
-module github.com/procyberian/glance/v10
+module github.com/procyberian/glance/v11
 
 go 1.25.0
 

@@ -4,6 +4,25 @@ Go ile yazılmış modüler bir ISO indirme, doğrulama ve yükleme aracıdır.
 
 Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır; ancak insan yönlendirmesiyle sürekli olarak güncellenmektedir. Proje, MIT lisansı altında Özgür Yazılım olarak sunulur ve katkılara açıktır. PlusClouds, topluluktan gelen katkıları arkadaşça memnuniyetle kabul eder.
 
+## Yayınlanan Sürüm
+
+`glance`, artık `v11` Go modül hattı ve `v11.0.0` git sürüm etiketi ile yayımlanmıştır.
+
+En güncel `v11` sürümünü doğrudan şu komutla kurabilirsiniz:
+
+```bash
+go install github.com/procyberian/glance/v11@latest
+```
+
+Kaynak kodu indirip yerelde derlemek için:
+
+```bash
+git clone git@github.com:procyberian/glance.git
+cd glance
+git checkout v11.0.0
+go build -o glance .
+```
+
 Bu sürümle birlikte araç artık:
 
 - FTP dizinlerini özyineli olarak tarar
