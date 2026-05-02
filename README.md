@@ -1,86 +1,86 @@
 # glance-cli
 
-Go ile yazılmış modüler bir ISO indirme, doğrulama ve yükleme aracıdır.
+`glance` is a modular Go CLI for ISO discovery, download verification, resume-aware transfers, and SSH/SFTP delivery.
 
-Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır; ancak insan yönlendirmesiyle sürekli olarak güncellenmektedir. Proje, MIT lisansı altında Özgür Yazılım olarak sunulur ve katkılara açıktır. PlusClouds, topluluktan gelen katkıları arkadaşça memnuniyetle kabul eder.
+This project was initiated with the help of AI-powered Microsoft Copilot, but it is continuously updated under human guidance. The project is offered as Free Software under the MIT License and is open to contributions. PlusClouds warmly and amicably welcomes community contributions.
 
-Bu sürümle birlikte araç artık:
+This release adds:
 
-- FTP dizinlerini özyineli olarak tarar
-- HTTP/HTTPS dizinlerini üst ve alt dizinlerle birlikte tarar
-- ISO listesini checksum bilgisiyle numaralı gösterir
-- Tekli, çoklu veya `all` seçimini destekler
-- Yarıda kalan indirmeleri `.download` dosyasından devam ettirir
-- `--no-resume` ile sıfırdan yeniden başlatır
-- `--output-path` ile tek ISO için tam hedef dosya yolunu destekler
-- `--scan-timeout` ile HTTP/FTP dizin tarama süresini sınırlandırır
-- Etkileşimli kullanımda ISO seçiminden sonra hedef dizini sorar
-- `--upload` kullanımında `--file` verilmezse yerel aday dosyaları listeler ve seçim yaptırır
+- recursive FTP ISO discovery
+- recursive HTTP/HTTPS directory discovery across parent and child paths on the same host
+- interactive ISO selection with single, multiple, or `all` choices
+- automatic checksum discovery for HTTP and FTP ISO sources
+- `.download` resume files for interrupted downloads
+- `--no-resume` to force a clean restart
+- `--output-path` for an exact destination file path
+- `--scan-timeout` to cap HTTP/FTP directory scan duration
+- a post-selection prompt asking where the ISO should be downloaded when no destination flag is supplied
+- interactive local file selection for `--upload` when `--file` is not provided
 
-## Kimler İçin?
+## Audience
 
-### Son Kullanıcılar
+### End Users
 
-- Hazır ISO listesinden seçim yaparak manuel URL kopyalama ihtiyacını azaltır
-- Checksum doğrulamasını otomatik yapar
-- Yarıda kalan indirmelerde tekrar baştan başlama zorunluluğunu ortadan kaldırır
+- discover available ISO files without manually copying deep mirror URLs
+- verify downloads automatically
+- resume interrupted downloads instead of starting over
 
-### Sistem Yöneticileri
+### System Administrators
 
-- Ayna sunucu veya kurumsal depo üzerinden ISO seçimini standartlaştırır
-- SSH/SFTP ile hedef makineye aktarım yapar
-- `known_hosts` doğrulaması ve uzak checksum karşılaştırması sunar
+- standardize ISO acquisition from mirrors and package repositories
+- upload verified files to remote systems over SSH/SFTP
+- use host verification and remote checksum validation in controlled environments
 
-### Geliştiriciler
+### Developers
 
-- Go modüllü yapı ile CLI, downloader, verifier, uploader ve keygen katmanlarına ayrılmıştır
-- HTTP ve FTP tarama davranışları ayrı fonksiyonlarda korunur
-- Değişiklik günlüğü ve README dosyaları sürüm hazırlama sürecini destekler
+- work with a layered Go codebase split into CLI, downloader, verifier, uploader, and keygen modules
+- extend either FTP or HTTP scanning behavior independently
+- prepare releases with aligned README and changelog documentation
 
-## Özellikler
+## Features
 
-- `--download`: ISO indirir veya yerel ISO dosyasını kopyalar
-- `--iso`, `--url`: HTTP, HTTPS, FTP veya yerel kaynak kabul eder
-- `--checksum`: Verilen checksum ile doğrular; verilmezse uygun durumda otomatik bulur veya yerel olarak hesaplar
+- `--download`: download an ISO or copy a local ISO file
+- `--iso`, `--url`: accept HTTP, HTTPS, FTP, or local sources
+- `--checksum`: verify against a provided checksum or auto-discovered checksum when available
 - `--checksum-algo`: `sha256`, `sha512`, `md5`
-- Canlı ilerleme: yüzde, anlık hız, ortalama hız, ağ hızı, ETA
-- FTP tarama: toplam ISO sayısını önce bulur, sonra checksum çözümü için tek ilerleme çubuğu gösterir
-- HTTP/HTTPS tarama: genel erişime açık dizin sayfalarını özyineli gezer, aynı sunucu üzerinde üst ve alt dizinleri dikkate alır
-- Seçim: `1`, `2,4,7`, `all`
-- Sürdürme: `.download` uzantılı geçici dosya ile kaldığı yerden devam eder
-- `--no-resume`: mevcut `.download` dosyasını yok sayıp sıfırdan indirir
-- `--output`: hedef klasörü belirler
-- `--output-path`: tek ISO için tam hedef dosya yolunu belirler
-- `--scan-timeout`: HTTP/FTP dizin taraması için zaman aşımı (saniye)
-- Etkileşimli mod: seçim yapıldıktan sonra hedef dizin sorusu sorar
-- Etkileşimli upload: `--file` verilmezse yerel ISO/imaj dosyalarını numaralı listeler, seçim ister
-- `--upload`: SSH/SFTP ile dosya yükler
-- Uzak checksum doğrulaması
-- `--keygen`: `ed25519`, `rsa`, `ecdsa` anahtar üretir
-- `--license`: MIT lisans metnini yazdırır
+- live transfer progress with percentage, instant speed, average speed, network speed, and ETA
+- FTP scanning with total ISO detection first, then checksum resolution progress in a single progress bar
+- HTTP/HTTPS scanning that traverses public directory listings recursively within the same host
+- interactive selection with `1`, `1,3,5`, or `all`
+- resume support via `.download` files
+- `--no-resume` to ignore any partial file and restart from byte zero
+- `--output` for a target directory
+- `--output-path` for an explicit full file path when downloading a single ISO
+- `--scan-timeout` for HTTP/FTP directory scan timeout (seconds)
+- interactive destination prompt after ISO selection when no output flag is supplied
+- interactive upload mode that lists local ISO/image files if `--file` is omitted
+- `--upload` for SSH/SFTP delivery
+- remote checksum verification after upload
+- `--keygen` for `ed25519`, `rsa`, and `ecdsa`
+- `--license` to print the MIT license text
 
-## Derleme
+## Build
 
 ```bash
 go mod tidy
 go build -o glance .
 ```
 
-## Son Kullanıcı Kullanım Rehberi
+## End User Guide
 
-### 1. Doğrudan ISO indir
+### 1. Download a direct ISO URL
 
 ```bash
 ./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso
 ```
 
-### 2. FTP dizinini tara, listele, seç ve indir
+### 2. Scan an FTP directory, list ISOs, choose one, and download it
 
 ```bash
 ./glance --download --iso ftp://ftp.example.com/iso/
 ```
 
-Beklenen akış:
+Expected flow:
 
 ```text
 Detecting total ISO count...
@@ -93,28 +93,28 @@ Select ISO number(s) (example: 1 or 1,3,5 or all) [1-100]:
 Which directory should the ISO be downloaded to? [default: ./downloads]:
 ```
 
-### 3. HTTP/HTTPS dizinini özyineli tara
+### 3. Scan an HTTP/HTTPS directory recursively
 
 ```bash
 ./glance --download --iso https://ftp.example.com/
 ```
 
-Bu modda araç:
+In this mode the tool:
 
-- Genel erişime açık dizini okur
-- Aynı sunucu üzerindeki ilgili alt dizinleri gezer
-- Başlangıç yolunun üst dizinlerini de taramaya dahil eder
-- Gerçek `.iso` dosyalarını seçim listesine ekler
+- reads public directory listings
+- traverses relevant child directories on the same host
+- includes parent directories for broader ISO discovery
+- keeps only real `.iso` files in the final selection list
 
-### 3.1 Doğrudan FTP ISO dosyasını indir
+### 3.1 Download a direct FTP ISO file
 
 ```bash
 ./glance --download --iso ftp://ftp.example.com/iso/example.iso
 ```
 
-Bu kullanımda araç FTP sunucusundan dosyayı doğrudan indirir. Yarım kalan `.download` dosyası varsa sürdürmeyi dener; sunucu desteklemiyorsa güvenli şekilde sıfırdan yeniden başlatır.
+In this mode the tool downloads the file directly from FTP. If a partial `.download` file exists it attempts resume first; if resume is not supported by the server, it safely restarts from zero.
 
-### 4. Seçim biçimleri
+### 4. Selection formats
 
 ```text
 1
@@ -122,30 +122,30 @@ Bu kullanımda araç FTP sunucusundan dosyayı doğrudan indirir. Yarım kalan `
 all
 ```
 
-### 4.1 Dizin tarama zaman aşımı ayarla
+### 4.1 Set directory scan timeout
 
 ```bash
 ./glance --download --iso https://ftp.uni-stuttgart.de/debian-cd/current/amd64/iso-cd/ --scan-timeout 180
 ```
 
-Not:
+Notes:
 
-- Varsayılan değer `60` saniyedir
-- `--scan-timeout 0` verilirse zaman aşımı devre dışı kalır
+- Default is `60` seconds
+- Use `--scan-timeout 0` to disable timeout
 
-Sorun giderme (argüman sırası):
+Troubleshooting (argument order):
 
-- Yanlış kullanım: `./glance --download --iso --scan-timeout https://ftp.uni-stuttgart.de/debian-cd/`
-- Doğru kullanım: `./glance --download --iso https://ftp.uni-stuttgart.de/debian-cd/ --scan-timeout 180`
-- Hata durumunda araç artık şu tip bir mesaj verir: `unexpected positional arguments: ...`
+- Wrong: `./glance --download --iso --scan-timeout https://ftp.uni-stuttgart.de/debian-cd/`
+- Correct: `./glance --download --iso https://ftp.uni-stuttgart.de/debian-cd/ --scan-timeout 180`
+- On malformed input, the CLI now returns an error such as: `unexpected positional arguments: ...`
 
-### 5. Yarıda kalan indirmeye devam et
+### 5. Resume an interrupted download
 
 ```bash
 ./glance --download --iso https://www.ututo.org/downloads/Candidato-Ututo-2017-UL.iso
 ```
 
-Eğer `downloads/Candidato-Ututo-2017-UL.iso.download` varsa araç şu şekilde davranır:
+If `downloads/Candidato-Ututo-2017-UL.iso.download` already exists, the tool behaves like this:
 
 ```text
 Resume file found: downloads/Candidato-Ututo-2017-UL.iso.download (44.69 MB). Download will continue from where it left off.
@@ -153,70 +153,70 @@ Starting ISO download (1/1)...
 Resuming download from 44.69 MB: downloads/Candidato-Ututo-2017-UL.iso.download
 ```
 
-### 6. Sürdürme özelliğini kapat ve sıfırdan başlat
+### 6. Force a clean restart instead of resuming
 
 ```bash
 ./glance --download --no-resume --iso https://www.ututo.org/downloads/Candidato-Ututo-2017-UL.iso
 ```
 
-### 7. ISO'yu belirli bir klasöre indir
+### 7. Download into a specific directory
 
 ```bash
 ./glance --download --iso https://www.ututo.org/downloads/Candidato-Ututo-2017-UL.iso --output /srv/iso-cache
 ```
 
-### 8. ISO'yu tam istediğin dosya yoluna indir
+### 8. Download to an exact destination file path
 
 ```bash
 ./glance --download --iso https://www.ututo.org/downloads/Candidato-Ututo-2017-UL.iso --output-path /srv/releases/custom-ututo.iso
 ```
 
-Not:
+Notes:
 
-- `--output-path` sadece tek ISO için geçerlidir
-- Çoklu seçimde `--output` kullanılmalıdır
+- `--output-path` only applies to a single ISO download
+- for multiple selected ISOs, use `--output`
 
-### 9. Yerel ISO'yu kopyala ve checksum hesapla
+### 9. Copy a local ISO and calculate its checksum locally
 
 ```bash
 ./glance --download --iso /home/user/isos/archlinux-x86_64.iso
 ```
 
-### 10. Belirli checksum ile doğrula
+### 10. Verify against a specific checksum
 
 ```bash
 ./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --checksum e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433
 ```
 
-## Sistem Yöneticisi Rehberi
+## System Administrator Guide
 
-### Ayna sunucu ve depo kullanım önerileri
+### Mirror and repository guidance
 
-- FTP tarafında anonim giriş desteklenmeyen hostlarda HTTP/HTTPS taraması tercih edilmelidir
-- Büyük ayna sunucularda tarama sırasında hız sınırlaması uygulanır
-- FTP taramada dizin istekleri arasında gecikme kullanılır; bu sayede saldırgan trafik gibi görünme riski azaltılır
+- for hosts that do not allow anonymous FTP, prefer HTTP/HTTPS directory scanning
+- large mirrors are scanned with pacing controls to reduce the risk of looking like abusive traffic
+- FTP traversal includes delays between directory listing requests to remain polite toward public servers
 
-### SSH/SFTP yükleme
+### SSH/SFTP delivery
 
-Şifre ile:
+Password-based authentication:
 
 ```bash
 ./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --password secret
 ```
 
-SSH anahtarı ile:
+SSH key authentication:
 
 ```bash
 ./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
-`--file` olmadan etkileşimli seçim:
+Interactive selection without `--file`:
 
 ```bash
 ./glance --upload --iso https://releases.ubuntu.com/24.04/
 ```
 
-Beklenen akış:
+Expected flow:
 
 ```text
 Local ISO/file candidates for upload:
@@ -228,36 +228,36 @@ SSH username:
 Auth method (password/key):
 ```
 
-Tek komutta indir ve yükle:
+Download and upload in one command:
 
 ```bash
 ./glance --download --iso https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso --upload --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
-`known_hosts` kaydı yoksa önce ekleyin:
+If the `known_hosts` entry is missing, add it first:
 
 ```bash
 ssh-keyscan -H 192.168.1.50 >> ~/.ssh/known_hosts
 ```
 
-### Operasyonel notlar
+### Operational notes
 
-- Sürdürme dosyaları nihai dosya adının sonuna `.download` eklenerek tutulur
-- İndirme tamamlanınca geçici dosya nihai dosyaya çevrilir
-- Sunucu `Range` desteklemiyorsa araç otomatik olarak sıfırdan yeniden indirir
-- FTP sunucusu resume (`REST`) desteklemiyorsa araç otomatik olarak sıfırdan yeniden indirir
+- resume files are stored as the final filename plus `.download`
+- when the transfer completes, the temporary file is renamed to the final target path
+- if the server ignores HTTP `Range`, the tool safely restarts the full download to avoid corruption
+- if an FTP server does not support resume (`REST`), the tool safely restarts the full download
 
-## Geliştirici Rehberi
+## Developer Guide
 
-### Paket yapısı
+### Package layout
 
-- `internal/cli`: seçenek ayrıştırma, istemler, seçim ve akışın orkestrasyonu
-- `internal/downloader`: HTTP/FTP tarama, indirme, sürdürme ve checksum kaynak çözümü
-- `internal/verifier`: yerel checksum hesaplama ve doğrulama
-- `internal/uploader`: SSH/SFTP yükleme ve uzak checksum doğrulama
-- `internal/keygen`: SSH anahtar üretimi
+- `internal/cli`: flag parsing, prompts, selection flow, and orchestration
+- `internal/downloader`: HTTP/FTP scanning, transfers, resume handling, and checksum source resolution
+- `internal/verifier`: local checksum calculation and validation
+- `internal/uploader`: SSH/SFTP upload and remote checksum validation
+- `internal/keygen`: SSH key generation
 
-### Önerilen geliştirme komutları
+### Recommended development commands
 
 ```bash
 go build -o glance .
@@ -265,32 +265,32 @@ go build -o glance .
 ./glance --download --iso https://www.ututo.org/downloads/
 ```
 
-### Checksum çözme sırası
+### Checksum resolution order
 
-HTTP/HTTPS için:
+For HTTP/HTTPS:
 
-- `dosya.iso.sha256sum` / `dosya.iso.sha512sum` / `dosya.iso.md5sum`
+- `file.iso.sha256sum` / `file.iso.sha512sum` / `file.iso.md5sum`
 - `SHA256SUMS` / `SHA512SUMS` / `MD5SUMS`
 - `checksum`
 
-FTP için:
+For FTP:
 
-- aynı dizindeki benzer checksum dosyaları
-- indeks dosyaları ve yaygın checksum dosya adları
+- sibling checksum files in the same directory as the ISO
+- common checksum index files and uppercase/lowercase variants
 
-Bulunamazsa yerel hash hesaplanır.
+If no remote checksum can be used, the tool calculates the file hash locally.
 
-### Etkileşimli karar akışı
+### Interactive control flow
 
-1. Kaynak bir dizinse ISO listesi çıkarılır
-2. Kullanıcı bir veya daha fazla ISO seçer
-3. `--output` ya da `--output-path` verilmediyse hedef dizin sorulur
-4. `.download` dosyası varsa sürdürme bilgisi gösterilir
-5. İndirme biterse checksum doğrulama yapılır
-6. `--upload` varsa uzak sisteme aktarılır
-7. Upload sırasında `--file` yoksa yerel aday dosyalar listelenir ve kullanıcı seçim yapar
+1. If the source is a directory, the tool builds an ISO list.
+2. The user selects one or more ISO files.
+3. If neither `--output` nor `--output-path` was provided, the tool asks where to download them.
+4. If a `.download` file exists, the tool reports that resume will be used.
+5. The download finishes and checksum verification runs.
+6. If `--upload` is enabled, the verified file is sent to the remote target.
+7. During upload, if `--file` is missing, local candidates are listed and the user picks one.
 
-## Tüm Seçenekler
+## Complete Flag Reference
 
 - `--download`
 - `--no-resume`
@@ -317,9 +317,9 @@ Bulunamazsa yerel hash hesaplanır.
 - `--license`
 - `--help`
 
-## Değişiklik Günlüğü Notu
+## Changelog Note
 
-`ChangeLog.md` sürüm notları ve günlük değişim kaydı için tutulur. En güncel commit zamanını doğrulamak için:
+`ChangeLog.md` is used as a running release and change journal. To verify the newest commit timestamps directly:
 
 ```bash
 git log --date=iso --pretty=format:"%h %ad %an: %s"

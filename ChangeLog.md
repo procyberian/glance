@@ -1,6 +1,11 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-02 - README Language Default Update
+
+- `README.en.md` has been replaced by `README.md` as the default project README in U.S. English.
+- `README.tr.md` is now provided as the Turkish language option.
+
 ## 2026-05-02 - README Project Statement Update
 
 - Added a new project statement to `README.md` in Turkey Turkish explaining that:
