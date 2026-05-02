@@ -1,6 +1,12 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-02 - v11.0.2 Release Preparation
+
+- Added `release-notes/v11.0.2.md` for the new patch tag that carries the public `pkg/glance` library surface.
+- Advanced published install, checkout, and release publishing examples from `v11.0.1` to `v11.0.2` to avoid reusing the existing tag.
+- Updated the default `scripts/publish-release.sh` tag target to `v11.0.2`.
+
 ## 2026-05-02 - Public Library Packaging
 
 - Added a reusable public package at `pkg/glance` so tagged releases can be consumed as a Go library instead of only as a CLI binary.

@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.1` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.2` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -19,18 +19,18 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.1
+git checkout v11.0.2
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.1` are distributed from the project release pages:
+Binary archives for `v11.0.2` are distributed from the project release pages:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.1` release and download the asset that matches your platform.
+Look for the `v11.0.2` release and download the asset that matches your platform.
 
 Planned asset names for this release:
 
@@ -43,7 +43,7 @@ Planned asset names for this release:
 To publish the release entry and upload these assets automatically after setting API tokens:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.1
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.2
 ```
 
 Token guidance:
@@ -55,10 +55,10 @@ Token guidance:
 Useful script modes:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.1
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.1
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.1
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.1.md v11.0.1
+./scripts/publish-release.sh --dry-run v11.0.2
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.2
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.2
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.2.md v11.0.2
 ```
 
 This release adds:
