@@ -1,6 +1,12 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-02 - v11.0.1 Release Preparation
+
+- Added `release-notes/v11.0.1.md` to capture the patch release scope for post-`v11.0.0` release automation and documentation updates.
+- Prepared a patch release path so Go module consumers can receive the latest repository state via `github.com/procyberian/glance/v11@v11.0.1` instead of reusing the immutable `v11.0.0` tag.
+- Confirmed that multi-architecture binaries are intended to be attached to the release entry associated with the `v11.0.1` git tag.
+
 ## 2026-05-02 - v11.0.0 Release Publication
 
 - Updated the Go module path from `github.com/procyberian/glance/v10` to `github.com/procyberian/glance/v11` so the new major release remains valid for Go module consumers.
