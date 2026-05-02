@@ -48,6 +48,7 @@ type Config struct {
 	Download      bool
 	NoResume      bool
 	Upload        bool
+	ScanTimeout   int
 	Keygen        bool
 	KeyAlgo       string
 	KeyOutputDir  string
@@ -91,6 +92,7 @@ func Parse(args []string) (Config, error) {
 	fs.BoolVar(&cfg.Download, "download", false, "Download/copy ISO from source")
 	fs.BoolVar(&cfg.NoResume, "no-resume", false, "Do not resume from .download files; restart download from zero")
 	fs.BoolVar(&cfg.Upload, "upload", false, "Upload ISO/file to remote server over SSH")
+	fs.IntVar(&cfg.ScanTimeout, "scan-timeout", 60, "Directory scan timeout in seconds for HTTP/FTP listing (0 disables timeout)")
 	fs.BoolVar(&cfg.Keygen, "keygen", false, "Generate SSH key pair (ed25519, rsa, ecdsa)")
 	fs.StringVar(&cfg.KeyAlgo, "key-algo", "ed25519", "Key algorithm: ed25519, rsa, ecdsa")
 	fs.StringVar(&cfg.KeyOutputDir, "key-output", "~/.ssh", "Directory to write generated key pair")
@@ -120,6 +122,10 @@ func Parse(args []string) (Config, error) {
 		return cfg, err
 	}
 
+	if extra := fs.Args(); len(extra) > 0 {
+		return cfg, fmt.Errorf("unexpected positional arguments: %s", strings.Join(extra, " "))
+	}
+
 	fs.Visit(func(f *flag.Flag) {
 		switch f.Name {
 		case "output":
@@ -131,6 +137,14 @@ func Parse(args []string) (Config, error) {
 
 	if !cfg.Download && !cfg.Upload && !cfg.Keygen && !cfg.ShowLicense && !cfg.ShowHelp {
 		cfg.ShowHelp = true
+	}
+
+	if cfg.ScanTimeout < 0 {
+		return cfg, fmt.Errorf("--scan-timeout must be >= 0")
+	}
+
+	if cfg.Download && strings.HasPrefix(strings.TrimSpace(cfg.ISOSource), "-") {
+		return cfg, fmt.Errorf("invalid --iso value %q; expected URL/path (example: --iso https://server/path/ --scan-timeout 60)", strings.TrimSpace(cfg.ISOSource))
 	}
 
 	return cfg, nil
@@ -156,6 +170,7 @@ Flags:
   --download        Download/copy ISO from source
 	--no-resume       Ignore existing .download files and restart download from zero
   --upload          Upload ISO/file over SSH/SFTP
+	--scan-timeout    Directory scan timeout in seconds for HTTP/FTP listing (default: 60, 0 disables timeout)
   --keygen          Generate SSH key pair
   --key-algo        Key algorithm: ed25519 (default), rsa, ecdsa
   --key-output      Directory for generated key (default: ~/.ssh)
@@ -211,8 +226,10 @@ func Run(cfg Config) error {
 
 		selectedDownloads := make([]selectedDownload, 0)
 
+		scanTimeout := scanTimeoutDuration(cfg.ScanTimeout)
+
 		if isHTTPDirectorySource(cfg.ISOSource) {
-			selectedOptions, selectErr := promptHTTPISOSelections(cfg.ISOSource, cfg.ChecksumAlgo)
+			selectedOptions, selectErr := promptHTTPISOSelections(cfg.ISOSource, cfg.ChecksumAlgo, scanTimeout)
 			if selectErr != nil {
 				return selectErr
 			}
@@ -220,7 +237,7 @@ func Run(cfg Config) error {
 				selectedDownloads = append(selectedDownloads, selectedDownload{Source: option.URL, Checksum: option.Checksum})
 			}
 		} else if isFTPDirectorySource(cfg.ISOSource) {
-			selectedOptions, selectErr := promptFTPISOSelections(cfg.ISOSource, cfg.ChecksumAlgo)
+			selectedOptions, selectErr := promptFTPISOSelections(cfg.ISOSource, cfg.ChecksumAlgo, scanTimeout)
 			if selectErr != nil {
 				return selectErr
 			}
@@ -279,14 +296,21 @@ func Run(cfg Config) error {
 			if downloadedPath != "" {
 				fileToUpload = downloadedPath
 			} else if strings.TrimSpace(cfg.ISOSource) != "" {
-				if isHTTPSource(cfg.ISOSource) {
-					base := filepath.Base(cfg.ISOSource)
-					fileToUpload = filepath.Join(cfg.OutputDir, base)
+				if isHTTPSource(cfg.ISOSource) || isFTPSource(cfg.ISOSource) {
+					selectedPath, selectErr := promptUploadFileSelection(cfg.OutputDir, cfg.ISOSource)
+					if selectErr != nil {
+						return selectErr
+					}
+					fileToUpload = selectedPath
 				} else {
 					fileToUpload = cfg.ISOSource
 				}
 			} else {
-				return fmt.Errorf("--file is required for --upload when no downloaded ISO is available")
+				selectedPath, selectErr := promptUploadFileSelection(cfg.OutputDir, "")
+				if selectErr != nil {
+					return selectErr
+				}
+				fileToUpload = selectedPath
 			}
 		}
 
@@ -425,6 +449,83 @@ func promptDownloadDirectory(defaultDir string) (string, error) {
 	return strings.TrimSpace(value), nil
 }
 
+func promptUploadFileSelection(defaultDir, sourceHint string) (string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	candidates := listLocalISOCandidates(defaultDir)
+
+	if len(candidates) > 0 {
+		fmt.Println("Local ISO/file candidates for upload:")
+		for i, candidate := range candidates {
+			fmt.Printf("  %d) %s\n", i+1, candidate)
+		}
+
+		for {
+			selection, err := prompt(reader, fmt.Sprintf("Select file number [1-%d] or type a full path", len(candidates)))
+			if err != nil {
+				return "", err
+			}
+
+			trimmed := strings.TrimSpace(selection)
+			if trimmed == "" {
+				continue
+			}
+
+			if value, convErr := strconv.Atoi(trimmed); convErr == nil {
+				if value >= 1 && value <= len(candidates) {
+					return candidates[value-1], nil
+				}
+				fmt.Printf("Invalid selection: '%d' must be between 1 and %d\n", value, len(candidates))
+				continue
+			}
+
+			return trimmed, nil
+		}
+	}
+
+	label := "Local file path to upload"
+	if strings.TrimSpace(sourceHint) != "" {
+		label = fmt.Sprintf("No local file found for source %s. Enter local file path to upload", strings.TrimSpace(sourceHint))
+	}
+	value, err := prompt(reader, label)
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(value) == "" {
+		return "", fmt.Errorf("a local file path is required for --upload")
+	}
+	return strings.TrimSpace(value), nil
+}
+
+func listLocalISOCandidates(rootDir string) []string {
+	trimmedRoot := strings.TrimSpace(rootDir)
+	if trimmedRoot == "" {
+		trimmedRoot = "."
+	}
+
+	entries, err := os.ReadDir(trimmedRoot)
+	if err != nil {
+		return nil
+	}
+
+	candidates := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		lowerName := strings.ToLower(name)
+		if strings.HasSuffix(lowerName, ".download") {
+			continue
+		}
+		if strings.HasSuffix(lowerName, ".iso") || strings.HasSuffix(lowerName, ".img") || strings.HasSuffix(lowerName, ".qcow2") {
+			candidates = append(candidates, filepath.Join(trimmedRoot, name))
+		}
+	}
+
+	sort.Strings(candidates)
+	return candidates
+}
+
 func isHTTPSource(source string) bool {
 	source = strings.ToLower(strings.TrimSpace(source))
 	return strings.HasPrefix(source, "http://") || strings.HasPrefix(source, "https://")
@@ -486,7 +587,7 @@ func shouldTryFTPFirst(source string) bool {
 	return strings.HasPrefix(host, "ftp.") || strings.Contains(host, ".ftp.")
 }
 
-func promptHTTPISOSelections(source, algorithm string) ([]downloader.FTPISOOption, error) {
+func promptHTTPISOSelections(source, algorithm string, scanTimeout time.Duration) ([]downloader.FTPISOOption, error) {
 	if shouldTryFTPFirst(source) {
 		ftpSource, ok := toFTPDirectoryURL(source)
 		if !ok {
@@ -494,7 +595,7 @@ func promptHTTPISOSelections(source, algorithm string) ([]downloader.FTPISOOptio
 		}
 
 		fmt.Printf("Attempting FTP scan first: %s\n", ftpSource)
-		if options, err := listFTPWithTimeout(ftpSource, algorithm, 12*time.Second); err == nil && len(options) > 0 {
+		if options, err := listFTPWithTimeout(ftpSource, algorithm, scanTimeout); err == nil && len(options) > 0 {
 			fmt.Println("Using FTP scan results")
 			return promptISOSelections("FTP ISO list:", options, algorithm)
 		} else if err != nil {
@@ -508,19 +609,26 @@ func promptHTTPISOSelections(source, algorithm string) ([]downloader.FTPISOOptio
 	}
 
 httpFallback:
-	options, err := downloader.ListHTTPISOs(source, algorithm)
+	options, err := listHTTPWithTimeout(source, algorithm, scanTimeout)
 	if err != nil {
 		return nil, err
 	}
 	return promptISOSelections("HTTP/HTTPS ISO list:", options, algorithm)
 }
 
-func promptFTPISOSelections(source, algorithm string) ([]downloader.FTPISOOption, error) {
-	options, err := downloader.ListFTPISOs(source, algorithm)
+func promptFTPISOSelections(source, algorithm string, scanTimeout time.Duration) ([]downloader.FTPISOOption, error) {
+	options, err := listFTPWithTimeout(source, algorithm, scanTimeout)
 	if err != nil {
 		return nil, err
 	}
 	return promptISOSelections("FTP ISO list:", options, algorithm)
+}
+
+func scanTimeoutDuration(seconds int) time.Duration {
+	if seconds <= 0 {
+		return 0
+	}
+	return time.Duration(seconds) * time.Second
 }
 
 func promptISOSelections(title string, options []downloader.FTPISOOption, algorithm string) ([]downloader.FTPISOOption, error) {
@@ -652,22 +760,11 @@ func toFTPDirectoryURL(source string) (string, bool) {
 }
 
 func listFTPWithTimeout(source, algorithm string, timeout time.Duration) ([]downloader.FTPISOOption, error) {
-	type result struct {
-		options []downloader.FTPISOOption
-		err     error
-	}
-	ch := make(chan result, 1)
-	go func() {
-		options, err := downloader.ListFTPISOs(source, algorithm)
-		ch <- result{options: options, err: err}
-	}()
+	return downloader.ListFTPISOsWithTimeout(source, algorithm, timeout)
+}
 
-	select {
-	case r := <-ch:
-		return r.options, r.err
-	case <-time.After(timeout):
-		return nil, fmt.Errorf("timeout after %s", timeout)
-	}
+func listHTTPWithTimeout(source, algorithm string, timeout time.Duration) ([]downloader.FTPISOOption, error) {
+	return downloader.ListHTTPISOsWithTimeout(source, algorithm, timeout)
 }
 
 func runKeygen(cfg Config) error {

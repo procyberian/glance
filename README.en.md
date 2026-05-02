@@ -11,7 +11,9 @@ This release adds:
 - `.download` resume files for interrupted downloads
 - `--no-resume` to force a clean restart
 - `--output-path` for an exact destination file path
+- `--scan-timeout` to cap HTTP/FTP directory scan duration
 - a post-selection prompt asking where the ISO should be downloaded when no destination flag is supplied
+- interactive local file selection for `--upload` when `--file` is not provided
 
 ## Audience
 
@@ -47,7 +49,9 @@ This release adds:
 - `--no-resume` to ignore any partial file and restart from byte zero
 - `--output` for a target directory
 - `--output-path` for an explicit full file path when downloading a single ISO
+- `--scan-timeout` for HTTP/FTP directory scan timeout (seconds)
 - interactive destination prompt after ISO selection when no output flag is supplied
+- interactive upload mode that lists local ISO/image files if `--file` is omitted
 - `--upload` for SSH/SFTP delivery
 - remote checksum verification after upload
 - `--keygen` for `ed25519`, `rsa`, and `ecdsa`
@@ -100,6 +104,14 @@ In this mode the tool:
 - includes parent directories for broader ISO discovery
 - keeps only real `.iso` files in the final selection list
 
+### 3.1 Download a direct FTP ISO file
+
+```bash
+./glance --download --iso ftp://ftp.example.com/iso/example.iso
+```
+
+In this mode the tool downloads the file directly from FTP. If a partial `.download` file exists it attempts resume first; if resume is not supported by the server, it safely restarts from zero.
+
 ### 4. Selection formats
 
 ```text
@@ -107,6 +119,23 @@ In this mode the tool:
 1,3,5
 all
 ```
+
+### 4.1 Set directory scan timeout
+
+```bash
+./glance --download --iso https://ftp.uni-stuttgart.de/debian-cd/current/amd64/iso-cd/ --scan-timeout 180
+```
+
+Notes:
+
+- Default is `60` seconds
+- Use `--scan-timeout 0` to disable timeout
+
+Troubleshooting (argument order):
+
+- Wrong: `./glance --download --iso --scan-timeout https://ftp.uni-stuttgart.de/debian-cd/`
+- Correct: `./glance --download --iso https://ftp.uni-stuttgart.de/debian-cd/ --scan-timeout 180`
+- On malformed input, the CLI now returns an error such as: `unexpected positional arguments: ...`
 
 ### 5. Resume an interrupted download
 
@@ -179,6 +208,24 @@ SSH key authentication:
 ./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
+Interactive selection without `--file`:
+
+```bash
+./glance --upload --iso https://releases.ubuntu.com/24.04/
+```
+
+Expected flow:
+
+```text
+Local ISO/file candidates for upload:
+	1) downloads/ubuntu-24.04.4-live-server-amd64.iso
+	2) downloads/debian-12.11.0-amd64-netinst.iso
+Select file number [1-2] or type a full path:
+SSH host/IP:
+SSH username:
+Auth method (password/key):
+```
+
 Download and upload in one command:
 
 ```bash
@@ -196,6 +243,7 @@ ssh-keyscan -H 192.168.1.50 >> ~/.ssh/known_hosts
 - resume files are stored as the final filename plus `.download`
 - when the transfer completes, the temporary file is renamed to the final target path
 - if the server ignores HTTP `Range`, the tool safely restarts the full download to avoid corruption
+- if an FTP server does not support resume (`REST`), the tool safely restarts the full download
 
 ## Developer Guide
 
@@ -238,6 +286,7 @@ If no remote checksum can be used, the tool calculates the file hash locally.
 4. If a `.download` file exists, the tool reports that resume will be used.
 5. The download finishes and checksum verification runs.
 6. If `--upload` is enabled, the verified file is sent to the remote target.
+7. During upload, if `--file` is missing, local candidates are listed and the user picks one.
 
 ## Complete Flag Reference
 
@@ -254,6 +303,7 @@ If no remote checksum can be used, the tool calculates the file hash locally.
 - `--checksum-algo`
 - `--output`
 - `--output-path`
+- `--scan-timeout`
 - `--file`
 - `--host`
 - `--port`

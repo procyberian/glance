@@ -91,6 +91,10 @@ func DownloadISO(source, outputDir, outputPath string, allowResume bool) (string
 
 	tempPath := outPath + ".download"
 
+	if isFTPSource(source) {
+		return downloadFTPISO(source, outPath, tempPath, allowResume)
+	}
+
 	if !isHTTPSource(source) {
 		return copyLocalISO(source, outPath)
 	}
@@ -241,6 +245,99 @@ func copyLocalISO(sourcePath, outPath string) (string, error) {
 	}
 
 	fmt.Printf("Copied %s to %s (%.2f MB)\n", sourcePath, outPath, float64(written)/(1024*1024))
+	fmt.Printf("Completed at %s\n", time.Now().Format(time.RFC3339))
+	return outPath, nil
+}
+
+func downloadFTPISO(source, outPath, tempPath string, allowResume bool) (string, error) {
+	conn, info, err := dialFTP(source)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Quit()
+
+	remotePath := strings.TrimSpace(info.BasePath)
+	if remotePath == "" || strings.HasSuffix(remotePath, "/") {
+		return "", fmt.Errorf("ftp source must point to a file, not a directory")
+	}
+
+	var existingSize int64
+	if !allowResume {
+		if _, statErr := os.Stat(tempPath); statErr == nil {
+			if err := os.Remove(tempPath); err != nil {
+				return "", fmt.Errorf("remove old resume file: %w", err)
+			}
+			fmt.Printf("Resume disabled, restarting from zero: %s\n", tempPath)
+		}
+	}
+	if allowResume {
+		if stat, statErr := os.Stat(tempPath); statErr == nil {
+			existingSize = stat.Size()
+		}
+	}
+
+	totalSize, _ := conn.FileSize(remotePath)
+	if totalSize > 0 && existingSize > 0 && existingSize >= totalSize {
+		if err := os.Rename(tempPath, outPath); err != nil {
+			return "", fmt.Errorf("finalize download: %w", err)
+		}
+		fmt.Printf("Downloaded %s (%.2f MB)\n", outPath, float64(existingSize)/(1024*1024))
+		fmt.Printf("Completed at %s\n", time.Now().Format(time.RFC3339))
+		return outPath, nil
+	}
+
+	appendMode := false
+	startOffset := int64(0)
+	var reader io.ReadCloser
+
+	if allowResume && existingSize > 0 {
+		reader, err = conn.RetrFrom(remotePath, uint64(existingSize))
+		if err == nil {
+			appendMode = true
+			startOffset = existingSize
+			fmt.Printf("Resuming download from %.2f MB: %s\n", float64(existingSize)/(1024*1024), tempPath)
+		} else {
+			fmt.Println("FTP server does not support resume, restarting full download")
+			existingSize = 0
+		}
+	}
+
+	if reader == nil {
+		reader, err = conn.Retr(remotePath)
+		if err != nil {
+			return "", fmt.Errorf("ftp retrieve: %w", err)
+		}
+	}
+	defer reader.Close()
+
+	flags := os.O_CREATE | os.O_WRONLY
+	if appendMode {
+		flags |= os.O_APPEND
+	} else {
+		flags |= os.O_TRUNC
+	}
+
+	outFile, err := os.OpenFile(tempPath, flags, 0o644)
+	if err != nil {
+		return "", fmt.Errorf("create output file: %w", err)
+	}
+	defer outFile.Close()
+
+	totalForProgress := totalSize
+	if appendMode && totalSize > 0 {
+		totalForProgress = totalSize
+	}
+
+	written, err := transferWithProgress(reader, outFile, totalForProgress, true, startOffset)
+	if err != nil {
+		return "", fmt.Errorf("write file: %w", err)
+	}
+
+	if err := os.Rename(tempPath, outPath); err != nil {
+		return "", fmt.Errorf("finalize download: %w", err)
+	}
+
+	fmt.Printf("Downloaded %s (%.2f MB)\n", outPath, float64(written)/(1024*1024))
 	fmt.Printf("Completed at %s\n", time.Now().Format(time.RFC3339))
 	return outPath, nil
 }
@@ -481,23 +578,33 @@ func FormatSize(size int64) string {
 }
 
 func ListFTPISOs(source, algorithm string) ([]FTPISOOption, error) {
+	return ListFTPISOsWithTimeout(source, algorithm, 0)
+}
+
+func ListFTPISOsWithTimeout(source, algorithm string, timeout time.Duration) ([]FTPISOOption, error) {
 	if !isFTPSource(source) {
 		return nil, fmt.Errorf("source must start with ftp://")
 	}
+
+	start := time.Now()
 
 	algo, err := normalizeChecksumAlgorithm(algorithm)
 	if err != nil {
 		return nil, err
 	}
 
-	conn, ftpInfo, err := dialFTP(source)
+	if err := checkScanTimeout(start, timeout); err != nil {
+		return nil, err
+	}
+
+	conn, ftpInfo, err := dialFTPWithTimeout(source, effectiveConnectTimeout(start, timeout, 12*time.Second))
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Quit()
 
 	fmt.Println("Detecting total ISO count...")
-	entries, err := walkFTPISOEntries(conn, ftpInfo.BasePath)
+	entries, err := walkFTPISOEntriesWithTimeout(conn, ftpInfo.BasePath, start, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -509,12 +616,16 @@ func ListFTPISOs(source, algorithm string) ([]FTPISOOption, error) {
 
 	options := make([]FTPISOOption, 0, len(entries))
 	for i, entry := range entries {
+		if err := checkScanTimeout(start, timeout); err != nil {
+			return nil, err
+		}
+
 		if i > 0 {
 			// Keep checksum-resolution requests paced so FTP servers are not overloaded.
 			time.Sleep(50 * time.Millisecond)
 		}
 
-		checksum, _ := resolveFTPChecksumForPath(conn, entry.Path, algo)
+		checksum, _ := resolveFTPChecksumForPathWithTimeout(conn, entry.Path, algo, start, timeout)
 		printChecksumProgressWithTotal(i+1, len(entries))
 
 		_, name := splitFTPDirAndFile(entry.Path)
@@ -534,9 +645,15 @@ func ListFTPISOs(source, algorithm string) ([]FTPISOOption, error) {
 }
 
 func ListHTTPISOs(source, algorithm string) ([]FTPISOOption, error) {
+	return ListHTTPISOsWithTimeout(source, algorithm, 0)
+}
+
+func ListHTTPISOsWithTimeout(source, algorithm string, timeout time.Duration) ([]FTPISOOption, error) {
 	if !isHTTPSource(source) {
 		return nil, fmt.Errorf("source must start with http:// or https://")
 	}
+
+	start := time.Now()
 
 	algo, err := normalizeChecksumAlgorithm(algorithm)
 	if err != nil {
@@ -548,7 +665,7 @@ func ListHTTPISOs(source, algorithm string) ([]FTPISOOption, error) {
 		return nil, fmt.Errorf("http/https ISO listing source must be a directory URL ending with '/'")
 	}
 
-	client := &http.Client{Timeout: 20 * time.Second}
+	client := &http.Client{Timeout: effectiveRequestTimeout(start, timeout, 20*time.Second)}
 	parsedBase, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse source URL: %w", err)
@@ -570,6 +687,10 @@ func ListHTTPISOs(source, algorithm string) ([]FTPISOOption, error) {
 	scannedDirs := 0
 
 	for len(queue) > 0 {
+		if err := checkScanTimeout(start, timeout); err != nil {
+			return nil, err
+		}
+
 		dirURL := queue[0]
 		queue = queue[1:]
 
@@ -666,6 +787,10 @@ func ListHTTPISOs(source, algorithm string) ([]FTPISOOption, error) {
 
 	options := make([]FTPISOOption, 0, len(isoURLs))
 	for i, isoURL := range isoURLs {
+		if err := checkScanTimeout(start, timeout); err != nil {
+			return nil, err
+		}
+
 		if i > 0 {
 			time.Sleep(50 * time.Millisecond)
 		}
@@ -784,17 +909,25 @@ func isISOFilePath(pathValue string) bool {
 }
 
 func walkFTPISOEntries(conn *ftp.ServerConn, startPath string) ([]ftpISOEntry, error) {
-	start := strings.TrimSpace(startPath)
-	if start == "" {
-		start = "/"
+	return walkFTPISOEntriesWithTimeout(conn, startPath, time.Time{}, 0)
+}
+
+func walkFTPISOEntriesWithTimeout(conn *ftp.ServerConn, startPath string, start time.Time, timeout time.Duration) ([]ftpISOEntry, error) {
+	startDir := strings.TrimSpace(startPath)
+	if startDir == "" {
+		startDir = "/"
 	}
 
 	entries := make([]ftpISOEntry, 0, 32)
-	queue := []string{start}
+	queue := []string{startDir}
 	visited := map[string]bool{}
 	firstListCall := true
 
 	for len(queue) > 0 {
+		if err := checkScanTimeout(start, timeout); err != nil {
+			return nil, err
+		}
+
 		dir := queue[0]
 		queue = queue[1:]
 
@@ -921,12 +1054,20 @@ func parseFTPSource(source string) (ftpConnectionInfo, error) {
 }
 
 func dialFTP(source string) (*ftp.ServerConn, ftpConnectionInfo, error) {
+	return dialFTPWithTimeout(source, 12*time.Second)
+}
+
+func dialFTPWithTimeout(source string, timeout time.Duration) (*ftp.ServerConn, ftpConnectionInfo, error) {
 	info, err := parseFTPSource(source)
 	if err != nil {
 		return nil, ftpConnectionInfo{}, err
 	}
 
-	conn, err := ftp.Dial(info.Address, ftp.DialWithTimeout(12*time.Second))
+	if timeout <= 0 {
+		timeout = 12 * time.Second
+	}
+
+	conn, err := ftp.Dial(info.Address, ftp.DialWithTimeout(timeout))
 	if err != nil {
 		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 			return nil, ftpConnectionInfo{}, fmt.Errorf("ftp connection timed out: %w", err)
@@ -943,6 +1084,10 @@ func dialFTP(source string) (*ftp.ServerConn, ftpConnectionInfo, error) {
 }
 
 func resolveFTPChecksumForPath(conn *ftp.ServerConn, isoPath, algorithm string) (string, error) {
+	return resolveFTPChecksumForPathWithTimeout(conn, isoPath, algorithm, time.Time{}, 0)
+}
+
+func resolveFTPChecksumForPathWithTimeout(conn *ftp.ServerConn, isoPath, algorithm string, start time.Time, timeout time.Duration) (string, error) {
 	dir, file := splitFTPDirAndFile(isoPath)
 	if file == "" {
 		return "", fmt.Errorf("invalid ftp iso path: %s", isoPath)
@@ -971,12 +1116,16 @@ func resolveFTPChecksumForPath(conn *ftp.ServerConn, isoPath, algorithm string) 
 	var lastErr error
 	seen := map[string]bool{}
 	for _, candidate := range candidates {
+		if err := checkScanTimeout(start, timeout); err != nil {
+			return "", err
+		}
+
 		if candidate == "" || seen[candidate] {
 			continue
 		}
 		seen[candidate] = true
 
-		checksum, err := fetchFTPChecksumCandidate(conn, candidate, file)
+		checksum, err := fetchFTPChecksumCandidateWithTimeout(conn, candidate, file, start, timeout)
 		if err == nil {
 			return checksum, nil
 		}
@@ -990,6 +1139,14 @@ func resolveFTPChecksumForPath(conn *ftp.ServerConn, isoPath, algorithm string) 
 }
 
 func fetchFTPChecksumCandidate(conn *ftp.ServerConn, candidatePath, isoFile string) (string, error) {
+	return fetchFTPChecksumCandidateWithTimeout(conn, candidatePath, isoFile, time.Time{}, 0)
+}
+
+func fetchFTPChecksumCandidateWithTimeout(conn *ftp.ServerConn, candidatePath, isoFile string, start time.Time, timeout time.Duration) (string, error) {
+	if err := checkScanTimeout(start, timeout); err != nil {
+		return "", err
+	}
+
 	r, err := conn.Retr(candidatePath)
 	if err != nil {
 		return "", fmt.Errorf("open ftp checksum file %s: %w", candidatePath, err)
@@ -1001,6 +1158,34 @@ func fetchFTPChecksumCandidate(conn *ftp.ServerConn, candidatePath, isoFile stri
 		return "", fmt.Errorf("parse ftp checksum file %s: %w", candidatePath, err)
 	}
 	return checksum, nil
+}
+
+func checkScanTimeout(start time.Time, timeout time.Duration) error {
+	if timeout <= 0 || start.IsZero() {
+		return nil
+	}
+	if time.Since(start) >= timeout {
+		return fmt.Errorf("timeout after %s", timeout)
+	}
+	return nil
+}
+
+func effectiveRequestTimeout(start time.Time, timeout, fallback time.Duration) time.Duration {
+	if timeout <= 0 || start.IsZero() {
+		return fallback
+	}
+	remaining := timeout - time.Since(start)
+	if remaining <= 0 {
+		return time.Millisecond
+	}
+	if remaining < fallback {
+		return remaining
+	}
+	return fallback
+}
+
+func effectiveConnectTimeout(start time.Time, timeout, fallback time.Duration) time.Duration {
+	return effectiveRequestTimeout(start, timeout, fallback)
 }
 
 func splitFTPDirAndFile(path string) (string, string) {

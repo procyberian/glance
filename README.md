@@ -11,7 +11,9 @@ Bu sürümle birlikte araç artık:
 - Yarıda kalan indirmeleri `.download` dosyasından devam ettirir
 - `--no-resume` ile sıfırdan yeniden başlatır
 - `--output-path` ile tek ISO için tam hedef dosya yolunu destekler
+- `--scan-timeout` ile HTTP/FTP dizin tarama süresini sınırlandırır
 - Etkileşimli kullanımda ISO seçiminden sonra hedef dizini sorar
+- `--upload` kullanımında `--file` verilmezse yerel aday dosyaları listeler ve seçim yaptırır
 
 ## Kimler İçin?
 
@@ -47,7 +49,9 @@ Bu sürümle birlikte araç artık:
 - `--no-resume`: mevcut `.download` dosyasını yok sayıp sıfırdan indirir
 - `--output`: hedef klasörü belirler
 - `--output-path`: tek ISO için tam hedef dosya yolunu belirler
+- `--scan-timeout`: HTTP/FTP dizin taraması için zaman aşımı (saniye)
 - Etkileşimli mod: seçim yapıldıktan sonra hedef dizin sorusu sorar
+- Etkileşimli upload: `--file` verilmezse yerel ISO/imaj dosyalarını numaralı listeler, seçim ister
 - `--upload`: SSH/SFTP ile dosya yükler
 - Uzak checksum doğrulaması
 - `--keygen`: `ed25519`, `rsa`, `ecdsa` anahtar üretir
@@ -100,6 +104,14 @@ Bu modda araç:
 - Başlangıç yolunun üst dizinlerini de taramaya dahil eder
 - Gerçek `.iso` dosyalarını seçim listesine ekler
 
+### 3.1 Doğrudan FTP ISO dosyasını indir
+
+```bash
+./glance --download --iso ftp://ftp.example.com/iso/example.iso
+```
+
+Bu kullanımda araç FTP sunucusundan dosyayı doğrudan indirir. Yarım kalan `.download` dosyası varsa sürdürmeyi dener; sunucu desteklemiyorsa güvenli şekilde sıfırdan yeniden başlatır.
+
 ### 4. Seçim biçimleri
 
 ```text
@@ -107,6 +119,23 @@ Bu modda araç:
 1,3,5
 all
 ```
+
+### 4.1 Dizin tarama zaman aşımı ayarla
+
+```bash
+./glance --download --iso https://ftp.uni-stuttgart.de/debian-cd/current/amd64/iso-cd/ --scan-timeout 180
+```
+
+Not:
+
+- Varsayılan değer `60` saniyedir
+- `--scan-timeout 0` verilirse zaman aşımı devre dışı kalır
+
+Sorun giderme (argüman sırası):
+
+- Yanlış kullanım: `./glance --download --iso --scan-timeout https://ftp.uni-stuttgart.de/debian-cd/`
+- Doğru kullanım: `./glance --download --iso https://ftp.uni-stuttgart.de/debian-cd/ --scan-timeout 180`
+- Hata durumunda araç artık şu tip bir mesaj verir: `unexpected positional arguments: ...`
 
 ### 5. Yarıda kalan indirmeye devam et
 
@@ -179,6 +208,24 @@ SSH anahtarı ile:
 ./glance --upload --file ./downloads/ubuntu-24.04.4-live-server-amd64.iso --host 192.168.1.50 --user root --ssh-key ~/.ssh/id_rsa --known-hosts ~/.ssh/known_hosts
 ```
 
+`--file` olmadan etkileşimli seçim:
+
+```bash
+./glance --upload --iso https://releases.ubuntu.com/24.04/
+```
+
+Beklenen akış:
+
+```text
+Local ISO/file candidates for upload:
+	1) downloads/ubuntu-24.04.4-live-server-amd64.iso
+	2) downloads/debian-12.11.0-amd64-netinst.iso
+Select file number [1-2] or type a full path:
+SSH host/IP:
+SSH username:
+Auth method (password/key):
+```
+
 Tek komutta indir ve yükle:
 
 ```bash
@@ -196,6 +243,7 @@ ssh-keyscan -H 192.168.1.50 >> ~/.ssh/known_hosts
 - Sürdürme dosyaları nihai dosya adının sonuna `.download` eklenerek tutulur
 - İndirme tamamlanınca geçici dosya nihai dosyaya çevrilir
 - Sunucu `Range` desteklemiyorsa araç otomatik olarak sıfırdan yeniden indirir
+- FTP sunucusu resume (`REST`) desteklemiyorsa araç otomatik olarak sıfırdan yeniden indirir
 
 ## Geliştirici Rehberi
 
@@ -238,6 +286,7 @@ Bulunamazsa yerel hash hesaplanır.
 4. `.download` dosyası varsa sürdürme bilgisi gösterilir
 5. İndirme biterse checksum doğrulama yapılır
 6. `--upload` varsa uzak sisteme aktarılır
+7. Upload sırasında `--file` yoksa yerel aday dosyalar listelenir ve kullanıcı seçim yapar
 
 ## Tüm Seçenekler
 
@@ -254,6 +303,7 @@ Bulunamazsa yerel hash hesaplanır.
 - `--checksum-algo`
 - `--output`
 - `--output-path`
+- `--scan-timeout`
 - `--file`
 - `--host`
 - `--port`

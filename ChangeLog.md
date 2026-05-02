@@ -35,6 +35,69 @@ Generated on: 2026-04-23T00:25:48+03:00
 - Refreshed Turkish and U.S. English documentation for end users, system administrators, and developers
 - Prepared changelog content for the `v6.0.0` release process
 
+## 2026-05-02 - Session Activity Log
+
+### User Requests and Technical Actions (Chronological)
+
+- User requested a logical consistency review across CLI arguments and general code flow.
+- Main entry and CLI orchestration were inspected to validate argument parsing and command routing.
+- Downloader, uploader, verifier, and keygen modules were reviewed for cross-module consistency.
+- A core contradiction was identified: FTP directory listing existed, but direct FTP file download path fell back to local file copy behavior.
+- This contradiction was verified by running `go run . --download --iso ftp://example.com/test.iso --output /tmp/glance-test` and observing local-path style open failure.
+- User requested fixing item 1 and item 2 with interactive behavior and selectable lists.
+
+### Implemented Code Changes During Session
+
+- Added direct FTP file download support into downloader flow.
+- Added resume-aware FTP download attempt (`RetrFrom`) with fallback to full restart when server resume is unavailable.
+- Preserved `.download` temporary file finalization pattern for FTP direct file downloads.
+- Updated upload-only behavior when `--file` is missing and source is HTTP/FTP URL:
+	- local candidate files are listed interactively,
+	- user can select by number or provide full path manually.
+- Added helper functions for local upload candidate enumeration and selection prompt.
+
+### Runtime Validation and Mirror Tests
+
+- Build checks were repeatedly run successfully (`go build ./...`, `go build -o glance .`).
+- Multiple mirror endpoints were tested to isolate code-vs-mirror behavior.
+- `ftp.lip6.fr` path used earlier was validated as missing (550/404 path mismatch).
+- `https://ftp.uni-stuttgart.de/debian-cd/` and child paths were validated reachable over HTTPS.
+- Directory scan on some mirrors was observed to be long-running; bounded runs timed out as expected.
+- Direct ISO download on the Stuttgart mirror was validated end-to-end (download + checksum auto-discovery + checksum verification).
+
+### CLI Robustness Improvements
+
+- Added `--scan-timeout` flag for HTTP/FTP directory listing timeout control.
+- Default behavior documented as 60 seconds; `0` disables timeout.
+- Added parser validation for malformed invocations:
+	- unexpected positional args now return explicit error,
+	- invalid `--iso` values that look like flags are rejected.
+- This prevented malformed command order from silently entering the wrong flow.
+
+### Timeout Architecture Improvement
+
+- Identified risk: goroutine-based timeout wrappers could return while background scans continued.
+- Refactored timeout handling into downloader scan functions:
+	- added timeout-aware scan variants,
+	- inserted timeout checks within FTP traversal/checksum loops and HTTP traversal loops,
+	- moved connect/request timeout selection to elapsed-time-aware helper logic.
+- CLI wrappers now call downloader timeout-aware APIs directly (no local goroutine timeout wrappers).
+
+### Documentation Updates
+
+- Updated `README.md` and `README.en.md` with:
+	- direct FTP ISO download behavior,
+	- interactive upload file selection without `--file`,
+	- `--scan-timeout` usage and examples,
+	- troubleshooting notes for incorrect argument order.
+
+### Session Outcome Summary
+
+- FTP direct file download contradiction resolved.
+- Upload-only URL case now interactive and user-selectable.
+- Scan timeout made configurable and parser hardened against malformed ordering.
+- Timeout logic moved closer to scan execution paths to reduce background-work risk after timeout.
+
 ## Commit History
 - bec52f4 2026-04-22 Mert Gör: ilk MIT/Expat ile
 - 4cf8635 2026-04-22 Mert Gör: initial commit
