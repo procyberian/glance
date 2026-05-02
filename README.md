@@ -46,6 +46,20 @@ To publish the release entry and upload these assets automatically after setting
 GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.0
 ```
 
+Token guidance:
+
+- GitHub classic personal access token: `repo`
+- GitHub fine-grained token: repository `Contents` set to read/write
+- Codeberg token: repository write access for releases and release assets
+
+Useful script modes:
+
+```bash
+./scripts/publish-release.sh --dry-run v11.0.0
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.0
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.0
+```
+
 This release adds:
 
 - recursive FTP ISO discovery

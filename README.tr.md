@@ -46,6 +46,20 @@ API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyal
 GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.0
 ```
 
+Token kapsamı önerileri:
+
+- GitHub klasik personal access token: `repo`
+- GitHub fine-grained token: repository `Contents` izni read/write
+- Codeberg token: release ve release asset işlemleri için repository write erişimi
+
+Yararlı script modları:
+
+```bash
+./scripts/publish-release.sh --dry-run v11.0.0
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.0
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.0
+```
+
 Bu sürümle birlikte araç artık:
 
 - FTP dizinlerini özyineli olarak tarar
