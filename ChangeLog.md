@@ -1,6 +1,12 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-03 - v11.0.4 Documentation Update (Minor)
+
+- Updated README.md to reflect v11.0.3 as the current published release version.
+- Updated all code examples and release references in installation and publish instructions.
+- This is a documentation-only minor update with no changes to binaries or source code.
+
 ## 2026-05-03 - v11.0.3 Release Preparation
 
 - Added release notes at `release-notes/v11.0.3.md` for the next patch release.

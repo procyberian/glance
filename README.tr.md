@@ -6,7 +6,7 @@ Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır
 
 ## Yayınlanan Sürüm
 
-`glance`, artık `v11` Go modül hattı ve `v11.0.2` git sürüm etiketi ile yayımlanmıştır.
+`glance`, artık `v11` Go modül hattı ve `v11.0.3` git sürüm etiketi ile yayımlanmıştır.
 
 En güncel `v11` sürümünü doğrudan şu komutla kurabilirsiniz:
 
@@ -21,18 +21,18 @@ Kaynak kodu indirip yerelde derlemek için:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.2
+git checkout v11.0.3
 go build -o glance .
 ```
 
 ## Binary İndirmeleri
 
-`v11.0.2` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
+`v11.0.3` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-`v11.0.2` sürümünü açıp platformunuza uygun asset dosyasını indirin.
+`v11.0.3` sürümünü açıp platformunuza uygun asset dosyasını indirin.
 
 Mimari eşlemesi:
 
@@ -53,7 +53,7 @@ Bu sürüm için planlanan asset adları:
 API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyalarını otomatik yüklemek için:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.2
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.3
 ```
 
 Token kapsamı önerileri:
@@ -65,10 +65,10 @@ Token kapsamı önerileri:
 Yararlı script modları:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.2
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.2
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.2
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.2.md v11.0.2
+./scripts/publish-release.sh --dry-run v11.0.3
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.3
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.3
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.3.md v11.0.3
 ```
 
 Bu sürümle birlikte araç artık:
