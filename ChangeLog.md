@@ -9,6 +9,7 @@ Generated on: 2026-04-23T00:25:48+03:00
 - Added a dedicated binary download section to both README files and prepared reusable release notes in `release-notes/v11.0.0.md`.
 - Added `scripts/publish-release.sh` to create or update GitHub and Codeberg releases and upload packaged assets from `dist/`.
 - Extended `scripts/publish-release.sh` with `--github-only`, `--codeberg-only`, and `--dry-run`, and documented token scope guidance for both hosting providers.
+- Extended `scripts/publish-release.sh` with `--dist-dir` and `--notes-file` so release inputs can be overridden from the command line.
 - Prepared the repository for signed commit, signed `v11.0.0` tag creation, and push to both `PSD` and `codeberg` remotes.
 
 ## 2026-05-02 - Module Path and Publishing Fix (v10)

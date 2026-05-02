@@ -58,6 +58,7 @@ Useful script modes:
 ./scripts/publish-release.sh --dry-run v11.0.0
 GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.0
 CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.0
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.0.md v11.0.0
 ```
 
 This release adds:

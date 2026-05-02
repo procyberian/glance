@@ -6,8 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 TAG="v11.0.0"
-DIST_DIR="${DIST_DIR:-$REPO_ROOT/dist}"
-NOTES_FILE="${NOTES_FILE:-$REPO_ROOT/release-notes/$TAG.md}"
+DIST_DIR="${DIST_DIR:-}"
+NOTES_FILE="${NOTES_FILE:-}"
 GITHUB_REPO="${GITHUB_REPO:-procyberian/glance}"
 CODEBERG_REPO="${CODEBERG_REPO:-procyberian/glance}"
 GITHUB_API="https://api.github.com"
@@ -26,6 +26,8 @@ then uploads all packaged artifacts from dist/.
 Options:
   --github-only     Publish only to GitHub
   --codeberg-only   Publish only to Codeberg
+  --dist-dir PATH   Read release assets from PATH instead of ./dist
+  --notes-file FILE Read release notes from FILE instead of ./release-notes/<tag>.md
   --dry-run         Print the planned actions without calling either API
   -h, --help        Show this help text
 
@@ -66,6 +68,24 @@ while [[ $# -gt 0 ]]; do
       PUBLISH_CODEBERG=1
       shift
       ;;
+    --dist-dir)
+      if [[ $# -lt 2 ]]; then
+        printf 'missing value for --dist-dir\n\n' >&2
+        usage >&2
+        exit 1
+      fi
+      DIST_DIR="$2"
+      shift 2
+      ;;
+    --notes-file)
+      if [[ $# -lt 2 ]]; then
+        printf 'missing value for --notes-file\n\n' >&2
+        usage >&2
+        exit 1
+      fi
+      NOTES_FILE="$2"
+      shift 2
+      ;;
     --dry-run)
       DRY_RUN=1
       shift
@@ -96,6 +116,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+DIST_DIR="${DIST_DIR:-$REPO_ROOT/dist}"
 NOTES_FILE="${NOTES_FILE:-$REPO_ROOT/release-notes/$TAG.md}"
 
 if [[ "$PUBLISH_GITHUB" -eq 0 && "$PUBLISH_CODEBERG" -eq 0 ]]; then
