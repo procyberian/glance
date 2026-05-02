@@ -37,11 +37,11 @@ import (
 	"strings"
 	"time"
 
-	"glance/internal/downloader"
-	"glance/internal/keygen"
-	licensecontent "glance/internal/license"
-	"glance/internal/uploader"
-	"glance/internal/verifier"
+	"github.com/procyberian/glance/internal/downloader"
+	"github.com/procyberian/glance/internal/keygen"
+	licensecontent "github.com/procyberian/glance/internal/license"
+	"github.com/procyberian/glance/internal/uploader"
+	"github.com/procyberian/glance/internal/verifier"
 )
 
 type Config struct {

@@ -1,4 +1,4 @@
-module glance
+module github.com/procyberian/glance
 
 go 1.25.0
 
