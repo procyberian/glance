@@ -1,6 +1,12 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-03 - v11.0.3 Release Preparation
+
+- Added release notes at `release-notes/v11.0.3.md` for the next patch release.
+- Built fresh multi-architecture prebuilt binaries and generated `dist/sha256sums.txt` for release asset integrity.
+- Prepared signed release flow for `v11.0.3` publication to both PSD and Codeberg remotes.
+
 ## 2026-05-03 - Security Enforcement and CI Gate
 
 - Added `.github/workflows/security.yml` to enforce `go mod verify`, `go build`, `go test`, `go vet`, and `govulncheck` in CI.
