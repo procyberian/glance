@@ -26,6 +26,7 @@ package cli
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -44,6 +45,9 @@ import (
 	"github.com/procyberian/glance/v11/internal/verifier"
 )
 
+// Version is the current release version of glance.
+const Version = "v11.0.5"
+
 type Config struct {
 	Download         bool
 	NoResume         bool
@@ -55,6 +59,9 @@ type Config struct {
 	KeyName          string
 	ShowLicense      bool
 	ShowHelp         bool
+	ShowVersion      bool
+	JSON             bool
+	ConnectTimeout   int
 	ISOSource        string
 	Checksum         string
 	ChecksumAlgo     string
@@ -73,6 +80,16 @@ type Config struct {
 	RemotePath       string
 }
 
+// RunOutput holds structured results emitted when --json is used.
+type RunOutput struct {
+	DownloadedPath string `json:"downloaded_path,omitempty"`
+	Checksum       string `json:"checksum,omitempty"`
+	Algorithm      string `json:"checksum_algorithm,omitempty"`
+	Uploaded       bool   `json:"uploaded,omitempty"`
+	RemoteHost     string `json:"remote_host,omitempty"`
+	RemoteFile     string `json:"remote_file,omitempty"`
+}
+
 func Parse(args []string) (Config, error) {
 	var cfg Config
 
@@ -83,6 +100,9 @@ func Parse(args []string) (Config, error) {
 			return cfg, nil
 		case "license":
 			cfg.ShowLicense = true
+			return cfg, nil
+		case "version":
+			cfg.ShowVersion = true
 			return cfg, nil
 		}
 	}
@@ -100,6 +120,9 @@ func Parse(args []string) (Config, error) {
 	fs.StringVar(&cfg.KeyName, "key-name", "", "Key filename without extension (default: id_<algo>)")
 	fs.BoolVar(&cfg.ShowLicense, "license", false, "Show MIT license and copyright")
 	fs.BoolVar(&cfg.ShowHelp, "help", false, "Show help")
+	fs.BoolVar(&cfg.ShowVersion, "version", false, "Show version")
+	fs.BoolVar(&cfg.JSON, "json", false, "Output results as JSON (machine-readable)")
+	fs.IntVar(&cfg.ConnectTimeout, "connect-timeout", 30, "TCP connection timeout in seconds for HTTP (0 disables timeout)")
 	fs.StringVar(&cfg.ISOSource, "iso", "", "ISO source URL/path (required for --download)")
 	fs.StringVar(&cfg.ISOSource, "url", "", "ISO source URL/path (alias of --iso)")
 	fs.BoolVar(&cfg.AllowInsecureFTP, "allow-insecure-ftp", false, "Allow insecure FTP sources (not recommended)")
@@ -137,7 +160,7 @@ func Parse(args []string) (Config, error) {
 		}
 	})
 
-	if !cfg.Download && !cfg.Upload && !cfg.Keygen && !cfg.ShowLicense && !cfg.ShowHelp {
+	if !cfg.Download && !cfg.Upload && !cfg.Keygen && !cfg.ShowLicense && !cfg.ShowHelp && !cfg.ShowVersion {
 		cfg.ShowHelp = true
 	}
 
@@ -205,6 +228,9 @@ Flags:
   --ssh-key         SSH private key path (rsa, ed25519, ecdsa supported)
   --known-hosts     Path to SSH known_hosts file (default: ~/.ssh/known_hosts)
   --remote-path     Remote upload directory (default: /tmp)
+  --connect-timeout TCP connection timeout in seconds for HTTP (default: 30, 0 disables)
+  --json            Output results as JSON (machine-readable)
+  --version         Show version
   --license         Print MIT license and copyright
   --help            Show this help
 
@@ -214,6 +240,12 @@ MIT License:
 }
 
 func Run(cfg Config) error {
+	if cfg.ShowVersion {
+		fmt.Printf("glance %s\n", Version)
+		return nil
+	}
+
+	var output RunOutput
 	var downloadedPath string
 
 	algo := normalizedAlgo(cfg.ChecksumAlgo)
@@ -305,7 +337,8 @@ func Run(cfg Config) error {
 				}
 			}
 			fmt.Printf("Starting ISO download (%d/%d)...\n", i+1, len(selectedDownloads))
-			path, checksum, dlErr := downloadAndVerifySource(item.Source, item.Checksum, cfg.OutputDir, targetPath, cfg.ChecksumAlgo, !cfg.NoResume)
+			connectTimeout := time.Duration(cfg.ConnectTimeout) * time.Second
+			path, checksum, dlErr := downloadAndVerifySource(item.Source, item.Checksum, cfg.OutputDir, targetPath, cfg.ChecksumAlgo, !cfg.NoResume, connectTimeout)
 			if dlErr != nil {
 				return dlErr
 			}
@@ -313,6 +346,9 @@ func Run(cfg Config) error {
 			downloadedPath = path
 			cfg.ISOSource = item.Source
 			cfg.Checksum = checksum
+			output.DownloadedPath = path
+			output.Checksum = checksum
+			output.Algorithm = normalizedAlgo(cfg.ChecksumAlgo)
 		}
 	}
 
@@ -356,17 +392,29 @@ func Run(cfg Config) error {
 			RemotePath: cfg.RemotePath,
 			Checksum:   cfg.Checksum,
 			Algorithm:  cfg.ChecksumAlgo,
+			NoResume:   cfg.NoResume,
 		}
 		if err := uploader.UploadFile(u); err != nil {
 			return err
+		}
+		output.Uploaded = true
+		output.RemoteHost = cfg.Host
+		output.RemoteFile = cfg.RemotePath + "/" + filepath.Base(fileToUpload)
+	}
+
+	if cfg.JSON {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(output); err != nil {
+			return fmt.Errorf("encode json output: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func downloadAndVerifySource(source, providedChecksum, outputDir, outputPath, checksumAlgo string, allowResume bool) (string, string, error) {
-	downloadedPath, err := downloader.DownloadISO(source, outputDir, outputPath, allowResume)
+func downloadAndVerifySource(source, providedChecksum, outputDir, outputPath, checksumAlgo string, allowResume bool, connectTimeout time.Duration) (string, string, error) {
+	downloadedPath, err := downloader.DownloadISOWithConnectTimeout(source, outputDir, outputPath, allowResume, connectTimeout)
 	if err != nil {
 		return "", "", err
 	}

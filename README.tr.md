@@ -6,7 +6,7 @@ Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır
 
 ## Yayınlanan Sürüm
 
-`glance`, artık `v11` Go modül hattı ve `v11.0.3` git sürüm etiketi ile yayımlanmıştır.
+`glance`, artık `v11` Go modül hattı ve `v11.0.5` git sürüm etiketi ile yayımlanmıştır.
 
 En güncel `v11` sürümünü doğrudan şu komutla kurabilirsiniz:
 
@@ -21,18 +21,18 @@ Kaynak kodu indirip yerelde derlemek için:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.3
+git checkout v11.0.5
 go build -o glance .
 ```
 
 ## Binary İndirmeleri
 
-`v11.0.3` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
+`v11.0.5` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-`v11.0.3` sürümünü açıp platformunuza uygun asset dosyasını indirin.
+`v11.0.5` sürümünü açıp platformunuza uygun asset dosyasını indirin.
 
 Mimari eşlemesi:
 
@@ -53,7 +53,7 @@ Bu sürüm için planlanan asset adları:
 API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyalarını otomatik yüklemek için:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.3
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.5
 ```
 
 Token kapsamı önerileri:
@@ -65,24 +65,19 @@ Token kapsamı önerileri:
 Yararlı script modları:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.3
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.3
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.3
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.3.md v11.0.3
+./scripts/publish-release.sh --dry-run v11.0.5
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.5
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.5
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.5.md v11.0.5
 ```
 
 Bu sürümle birlikte araç artık:
 
-- FTP dizinlerini özyineli olarak tarar
-- HTTP/HTTPS dizinlerini üst ve alt dizinlerle birlikte tarar
-- ISO listesini checksum bilgisiyle numaralı gösterir
-- Tekli, çoklu veya `all` seçimini destekler
-- Yarıda kalan indirmeleri `.download` dosyasından devam ettirir
-- `--no-resume` ile sıfırdan yeniden başlatır
-- `--output-path` ile tek ISO için tam hedef dosya yolunu destekler
-- `--scan-timeout` ile HTTP/FTP dizin tarama süresini sınırlandırır
-- Etkileşimli kullanımda ISO seçiminden sonra hedef dizini sorar
-- `--upload` kullanımında `--file` verilmezse yerel aday dosyaları listeler ve seçim yaptırır
+- Yükleme (upload) sırasında canlı ilerleme gösterir: yüzde, anlık hız, ortalama hız ve ETA
+- Yarıda kesen yüklemeleri resume ederek uzak dosyaya ekler; `--no-resume` ile devre dışı bırakılabilir
+- `--version` bayrağı ve `version` alt komutuyla sürüm bilgisini gösterir
+- `--json` bayrağıyla tüm işlem sonucunu yapılandırılmış JSON olarak yazar
+- `--connect-timeout` bayrağıyla HTTP/HTTPS TCP bağlantı zaman aşımını ayarlar (varsayılan 30 saniye)
 
 ## Kimler İçin?
 

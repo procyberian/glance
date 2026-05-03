@@ -62,6 +62,9 @@ type DownloadResult struct {
 
 const LicenseText = licensecontent.Text
 
+// Version is the current release version of glance.
+const Version = cli.Version
+
 func Parse(args []string) (Config, error) {
 	return cli.Parse(args)
 }
@@ -76,6 +79,10 @@ func HelpText() string {
 
 func DownloadISO(source, outputDir, outputPath string, allowResume bool) (string, error) {
 	return downloader.DownloadISO(source, outputDir, outputPath, allowResume)
+}
+
+func DownloadISOWithConnectTimeout(source, outputDir, outputPath string, allowResume bool, connectTimeout time.Duration) (string, error) {
+	return downloader.DownloadISOWithConnectTimeout(source, outputDir, outputPath, allowResume, connectTimeout)
 }
 
 func DownloadAndVerify(options DownloadOptions) (DownloadResult, error) {
@@ -159,6 +166,11 @@ func Execute(args []string) error {
 	cfg, err := Parse(args)
 	if err != nil {
 		return err
+	}
+
+	if cfg.ShowVersion {
+		fmt.Printf("glance %s\n", Version)
+		return nil
 	}
 
 	if cfg.ShowLicense {

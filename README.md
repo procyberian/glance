@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.3` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.5` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -21,18 +21,18 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.3
+git checkout v11.0.5
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.3` are distributed from the project release pages:
+Binary archives for `v11.0.5` are distributed from the project release pages:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.3` release and download the asset that matches your platform.
+Look for the `v11.0.5` release and download the asset that matches your platform.
 
 Architecture mapping:
 
@@ -53,7 +53,7 @@ Planned asset names for this release:
 To publish the release entry and upload these assets automatically after setting API tokens:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.3
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.5
 ```
 
 Token guidance:
@@ -65,24 +65,19 @@ Token guidance:
 Useful script modes:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.3
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.3
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.3
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.3.md v11.0.3
+./scripts/publish-release.sh --dry-run v11.0.5
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.5
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.5
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.5.md v11.0.5
 ```
 
 This release adds:
 
-- recursive FTP ISO discovery
-- recursive HTTP/HTTPS directory discovery across parent and child paths on the same host
-- interactive ISO selection with single, multiple, or `all` choices
-- automatic checksum discovery for HTTP and FTP ISO sources
-- `.download` resume files for interrupted downloads
-- `--no-resume` to force a clean restart
-- `--output-path` for an exact destination file path
-- `--scan-timeout` to cap HTTP/FTP directory scan duration
-- a post-selection prompt asking where the ISO should be downloaded when no destination flag is supplied
-- interactive local file selection for `--upload` when `--file` is not provided
+- live upload progress with percentage, instant speed, average speed, and ETA
+- upload resume support: appends to a partial remote file unless `--no-resume` is set
+- `--version` flag and `version` subcommand
+- `--json` flag for machine-readable structured output
+- `--connect-timeout` flag for HTTP TCP dial timeout (default 30 s)
 
 ## Audience
 
@@ -114,17 +109,14 @@ This release adds:
 - FTP scanning with total ISO detection first, then checksum resolution progress in a single progress bar
 - HTTP/HTTPS scanning that traverses public directory listings recursively within the same host
 - interactive selection with `1`, `1,3,5`, or `all`
-- resume support via `.download` files
-- `--no-resume` to ignore any partial file and restart from byte zero
-- `--output` for a target directory
-- `--output-path` for an explicit full file path when downloading a single ISO
-- `--scan-timeout` for HTTP/FTP directory scan timeout (seconds)
-- interactive destination prompt after ISO selection when no output flag is supplied
-- interactive upload mode that lists local ISO/image files if `--file` is omitted
-- `--upload` for SSH/SFTP delivery
-- remote checksum verification after upload
-- `--keygen` for `ed25519`, `rsa`, and `ecdsa`
-- `--license` to print the MIT license text
+- `--no-resume`: skip any partial `.download` file and restart from byte zero; also prevents appending to a partial remote file during upload
+- `--upload`: upload a file over SSH/SFTP with live progress and optional resume
+- `--scan-timeout`: directory scan timeout in seconds for HTTP/FTP listing (default 60; 0 disables)
+- `--connect-timeout`: TCP connection timeout in seconds for HTTP downloads (default 30; 0 disables)
+- `--version`: print the current release version and exit
+- `--json`: write a structured JSON result to stdout after all operations complete
+- `--checksum-algo`: `sha256`, `sha512`
+- live transfer progress with percentage, instant speed, average speed, and ETA (both download and upload)
 
 ## Build
 
@@ -163,7 +155,7 @@ func main() {
 }
 ```
 
-The same package also exposes direct wrappers for `DownloadISO`, `ListFTPISOs`, `ListHTTPISOs`, `ResolveChecksum`, `VerifyFileHash`, `CalculateFileHash`, `UploadFile`, `GenerateKeyPair`, `Parse`, `Run`, and `Execute`.
+The same package also exposes direct wrappers for `DownloadISO`, `DownloadISOWithConnectTimeout`, `ListFTPISOs`, `ListHTTPISOs`, `ResolveChecksum`, `VerifyFileHash`, `CalculateFileHash`, `UploadFile`, `GenerateKeyPair`, `Parse`, `Run`, and `Execute`. The `Version` constant is also exported.
 
 ## End User Guide
 
@@ -406,6 +398,7 @@ If no remote checksum can be used, the tool calculates the file hash locally.
 - `--output`
 - `--output-path`
 - `--scan-timeout`
+- `--connect-timeout`
 - `--file`
 - `--host`
 - `--port`
@@ -414,6 +407,8 @@ If no remote checksum can be used, the tool calculates the file hash locally.
 - `--ssh-key`
 - `--known-hosts`
 - `--remote-path`
+- `--json`
+- `--version`
 - `--license`
 - `--help`
 

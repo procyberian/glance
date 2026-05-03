@@ -1,6 +1,15 @@
 # ChangeLog
 Generated on: 2026-04-23T00:25:48+03:00
 
+## 2026-05-03 - v11.0.5 Feature Release
+
+- Added live upload progress reporting to `internal/uploader`: percentage, instant speed, average speed, and ETA are now printed during every SSH/SFTP transfer, replacing the silent `io.Copy` call.
+- Added upload resume support to `internal/uploader`: if a partial remote file exists and `--no-resume` is not set, the uploader seeks the local file to the remote offset and appends instead of overwriting. `uploader.Config` gains a `NoResume bool` field.
+- Added `--version` flag and `version` subcommand: `./glance --version` and `./glance version` both print the current release string. A `Version` constant is now exported from both `internal/cli` and `pkg/glance`.
+- Added `--json` flag: when present, `Run` writes a structured JSON object to stdout after all operations complete, containing `downloaded_path`, `checksum`, `checksum_algorithm`, `uploaded`, `remote_host`, and `remote_file` fields. This enables scripted and CI usage without screen-scraping.
+- Added `--connect-timeout` flag (default 30 s): sets a hard TCP dial timeout for HTTP/HTTPS downloads, preventing indefinite hangs on unresponsive servers. `downloader.DownloadISOWithConnectTimeout` is exposed as a new library function; the original `DownloadISO` delegates to it with a zero timeout for backward compatibility.
+- Exported `DownloadISOWithConnectTimeout` in `pkg/glance` so library consumers can pass their own connect timeout without forking internal packages.
+
 ## 2026-05-03 - v11.0.4 Documentation Update (Minor)
 
 - Updated README.md to reflect v11.0.3 as the current published release version.

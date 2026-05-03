@@ -61,6 +61,10 @@ type ftpISOEntry struct {
 }
 
 func DownloadISO(source, outputDir, outputPath string, allowResume bool) (string, error) {
+	return DownloadISOWithConnectTimeout(source, outputDir, outputPath, allowResume, 0)
+}
+
+func DownloadISOWithConnectTimeout(source, outputDir, outputPath string, allowResume bool, connectTimeout time.Duration) (string, error) {
 	source = strings.TrimSpace(source)
 	if source == "" {
 		return "", fmt.Errorf("iso source cannot be empty")
@@ -104,18 +108,7 @@ func DownloadISO(source, outputDir, outputPath string, allowResume bool) (string
 
 	source = upgradeToHTTPS(source)
 
-	client := &http.Client{
-		Timeout: 0,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if req.URL.Scheme == "http" {
-				req.URL.Scheme = "https"
-			}
-			if len(via) >= 10 {
-				return fmt.Errorf("too many redirects")
-			}
-			return nil
-		},
-	}
+	client := makeHTTPClient(connectTimeout)
 
 	var existingSize int64
 	if !allowResume {
@@ -193,6 +186,29 @@ func DownloadISO(source, outputDir, outputPath string, allowResume bool) (string
 	fmt.Printf("Downloaded %s (%.2f MB)\n", outPath, float64(written)/(1024*1024))
 	fmt.Printf("Completed at %s\n", time.Now().Format(time.RFC3339))
 	return outPath, nil
+}
+
+func makeHTTPClient(connectTimeout time.Duration) *http.Client {
+	transport := &http.Transport{}
+	if connectTimeout > 0 {
+		transport.DialContext = (&net.Dialer{
+			Timeout:   connectTimeout,
+			KeepAlive: 30 * time.Second,
+		}).DialContext
+	}
+	return &http.Client{
+		Transport: transport,
+		Timeout:   0,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if req.URL.Scheme == "http" {
+				req.URL.Scheme = "https"
+			}
+			if len(via) >= 10 {
+				return fmt.Errorf("too many redirects")
+			}
+			return nil
+		},
+	}
 }
 
 func ResolveChecksum(source, algorithm string) (string, error) {
