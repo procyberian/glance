@@ -1,5 +1,20 @@
 # ChangeLog
-Generated on: 2026-04-23T00:25:48+03:00
+Generated on: 2026-07-03T00:00:00+03:00
+
+## 2026-07-03 - v11.0.6 Maintenance Release
+
+- Updated `go` directive from `go 1.25.0` to `go 1.26` (matched to installed toolchain).
+- Upgraded `github.com/jlaffaye/ftp` from `v0.2.0` to `v0.2.1`.
+- Upgraded `golang.org/x/crypto` from `v0.50.0` to `v0.53.0` (security fixes).
+- Upgraded `golang.org/x/sys` from `v0.43.0` to `v0.46.0`.
+- Upgraded `github.com/hashicorp/errwrap` from `v1.0.0` to `v1.1.0`.
+- Ran `go mod tidy` to remove unused indirect dependencies (`hashicorp/go-multierror`, `stretchr/testify`, `golang.org/x/net`, `golang.org/x/term`, `golang.org/x/text`, `gopkg.in/yaml.v3`, `davecgh/go-spew`, `pmezard/go-difflib`).
+- Added `internal/keygen/keygen_test.go`: tests for `GenerateKeyPair` covering ed25519, RSA (2048-bit), ECDSA, empty algorithm defaulting, custom key names, unsupported algorithm rejection, and private key file permission enforcement (0600).
+- Added `internal/license/license_test.go`: tests asserting `Text` is non-empty and contains the MIT header, copyright holder, permission grant, and warranty disclaimer clauses.
+- Added `internal/uploader/uploader_test.go`: tests for config validation — rejects empty host, empty user, and empty local file path; confirms default port (22) is applied before any connection attempt.
+- Added `pkg/glance/glance_test.go`: tests for the public API surface — `Version` format, `LicenseText` content, `HelpText` output, `Parse` flag handling (`--version`, `--license`, `--help`), `Execute` short-circuit paths, `CalculateFileHash` (sha256 and sha512 output lengths), `VerifyFileHash` (correct and wrong hash), and `GenerateKeyPair` key file creation.
+- Bumped `Version` constant to `v11.0.6` in `internal/cli/cli.go`.
+- Updated `scripts/publish-release.sh` default tag to `v11.0.6`.
 
 ## 2026-05-03 - v11.0.5 Feature Release
 
