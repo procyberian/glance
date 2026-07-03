@@ -6,7 +6,7 @@ Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır
 
 ## Yayınlanan Sürüm
 
-`glance`, artık `v11` Go modül hattı ve `v11.0.7` git sürüm etiketi ile yayımlanmıştır.
+`glance`, artık `v11` Go modül hattı ve `v11.0.8` git sürüm etiketi ile yayımlanmıştır.
 
 En güncel `v11` sürümünü doğrudan şu komutla kurabilirsiniz:
 
@@ -21,18 +21,18 @@ Kaynak kodu indirip yerelde derlemek için:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.7
+git checkout v11.0.8
 go build -o glance .
 ```
 
 ## Binary İndirmeleri
 
-`v11.0.7` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
+`v11.0.8` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-`v11.0.7` sürümünü açıp platformunuza uygun asset dosyasını indirin.
+`v11.0.8` sürümünü açıp platformunuza uygun asset dosyasını indirin.
 
 Mimari eşlemesi:
 
@@ -53,7 +53,7 @@ Bu sürüm için planlanan asset adları:
 API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyalarını otomatik yüklemek için:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.7
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.8
 ```
 
 Token kapsamı önerileri:
@@ -65,17 +65,15 @@ Token kapsamı önerileri:
 Yararlı script modları:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.7
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.7
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.7
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.7.md v11.0.7
+./scripts/publish-release.sh --dry-run v11.0.8
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.8
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.8
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.8.md v11.0.8
 ```
 
 Bu sürümle birlikte:
 
-- `README.md` ve `README.tr.md` içindeki tüm sürüm referansları `v11.0.5`'ten `v11.0.6`'ya güncellendi
-- Her iki README dosyasındaki sürüm açıklaması v11.0.6 değişikliklerini doğru biçimde yansıtacak şekilde yeniden yazıldı
-- `ChangeLog.md` v11.0.6 girdisindeki hatalı `golang.org/x/net` sabitleme notu kaldırıldı
+- `scripts/publish-release.sh` betiğine etkileşimli token sorgulama eklendi: `GH_TOKEN` veya `CODEBERG_TOKEN` ortam değişkeni tanımlı değilse betik hemen hata verip çıkmak yerine terminalde gizli girişli (`read -rsp`) bir parola istemi gösterir
 
 ## Kimler İçin?
 

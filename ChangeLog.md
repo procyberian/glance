@@ -1,6 +1,13 @@
 # ChangeLog
 Generated on: 2026-07-03T00:00:00+03:00
 
+## 2026-07-03 - v11.0.8 Script Enhancement
+
+- Enhanced `scripts/publish-release.sh`: token prompting is now interactive — when `GH_TOKEN` or `CODEBERG_TOKEN` are not set as environment variables and the script is running in a terminal (`-t 0`), the script prompts the user to type each token with `read -rsp` (input is hidden and not echoed). Non-interactive runs (CI, pipes) still require the tokens as environment variables and exit with an error if absent.
+- Bumped `Version` constant to `v11.0.8` in `internal/cli/cli.go`.
+- Updated `scripts/publish-release.sh` default tag to `v11.0.8`.
+- Updated `README.md` and `README.tr.md`: advanced all version references to `v11.0.8`.
+
 ## 2026-07-03 - v11.0.7 Documentation Update (Minor)
 
 - Updated `README.md` and `README.tr.md`: advanced all version references from `v11.0.5` to `v11.0.6`; rewrote "This release adds" section in both English and Turkish to describe v11.0.6 dependency and test coverage changes instead of the old v11.0.5 feature list.

@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-TAG="v11.0.7"
+TAG="v11.0.8"
 DIST_DIR="${DIST_DIR:-}"
 NOTES_FILE="${NOTES_FILE:-}"
 GITHUB_REPO="${GITHUB_REPO:-procyberian/glance}"
@@ -338,13 +338,25 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
 fi
 
 if [[ "$PUBLISH_GITHUB" -eq 1 && "$DRY_RUN" -eq 0 && -z "${GH_TOKEN:-}" ]]; then
-  printf 'GH_TOKEN is required\n' >&2
-  exit 1
+  if [[ -t 0 ]]; then
+    read -rsp 'GitHub token (GH_TOKEN): ' GH_TOKEN
+    printf '\n'
+  fi
+  if [[ -z "${GH_TOKEN:-}" ]]; then
+    printf 'GH_TOKEN is required\n' >&2
+    exit 1
+  fi
 fi
 
 if [[ "$PUBLISH_CODEBERG" -eq 1 && "$DRY_RUN" -eq 0 && -z "${CODEBERG_TOKEN:-}" ]]; then
-  printf 'CODEBERG_TOKEN is required\n' >&2
-  exit 1
+  if [[ -t 0 ]]; then
+    read -rsp 'Codeberg token (CODEBERG_TOKEN): ' CODEBERG_TOKEN
+    printf '\n'
+  fi
+  if [[ -z "${CODEBERG_TOKEN:-}" ]]; then
+    printf 'CODEBERG_TOKEN is required\n' >&2
+    exit 1
+  fi
 fi
 
 if [[ "$PUBLISH_GITHUB" -eq 1 ]]; then

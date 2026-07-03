@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.7` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.8` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -21,18 +21,18 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.7
+git checkout v11.0.8
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.7` are distributed from the project release pages:
+Binary archives for `v11.0.8` are distributed from the project release pages:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.7` release and download the asset that matches your platform.
+Look for the `v11.0.8` release and download the asset that matches your platform.
 
 Architecture mapping:
 
@@ -53,7 +53,7 @@ Planned asset names for this release:
 To publish the release entry and upload these assets automatically after setting API tokens:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.7
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.8
 ```
 
 Token guidance:
@@ -65,17 +65,15 @@ Token guidance:
 Useful script modes:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.7
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.7
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.7
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.7.md v11.0.7
+./scripts/publish-release.sh --dry-run v11.0.8
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.8
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.8
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.8.md v11.0.8
 ```
 
 This release adds:
 
-- corrected all version references in `README.md` and `README.tr.md` from `v11.0.5` to `v11.0.6`
-- rewrote release description in both READMEs to accurately reflect v11.0.6 changes
-- corrected `ChangeLog.md` entry for v11.0.6 (removed inaccurate `golang.org/x/net` pin note)
+- interactive token prompting in `scripts/publish-release.sh`: if `GH_TOKEN` or `CODEBERG_TOKEN` are not set, the script now prompts for them securely with hidden input instead of exiting immediately
 
 ## Audience
 
