@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.5` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.6` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -21,18 +21,18 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.5
+git checkout v11.0.6
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.5` are distributed from the project release pages:
+Binary archives for `v11.0.6` are distributed from the project release pages:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.5` release and download the asset that matches your platform.
+Look for the `v11.0.6` release and download the asset that matches your platform.
 
 Architecture mapping:
 
@@ -53,7 +53,7 @@ Planned asset names for this release:
 To publish the release entry and upload these assets automatically after setting API tokens:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.5
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.6
 ```
 
 Token guidance:
@@ -65,19 +65,17 @@ Token guidance:
 Useful script modes:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.5
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.5
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.5
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.5.md v11.0.5
+./scripts/publish-release.sh --dry-run v11.0.6
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.6
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.6
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.6.md v11.0.6
 ```
 
 This release adds:
 
-- live upload progress with percentage, instant speed, average speed, and ETA
-- upload resume support: appends to a partial remote file unless `--no-resume` is set
-- `--version` flag and `version` subcommand
-- `--json` flag for machine-readable structured output
-- `--connect-timeout` flag for HTTP TCP dial timeout (default 30 s)
+- dependency security update: `golang.org/x/crypto` bumped to `v0.53.0`
+- all direct and indirect dependencies refreshed to their latest compatible versions
+- full test coverage for `internal/keygen`, `internal/license`, `internal/uploader`, and `pkg/glance`
 
 ## Audience
 
