@@ -46,7 +46,7 @@ import (
 )
 
 // Version is the current release version of glance.
-const Version = "v11.0.6"
+const Version = "v11.0.7"
 
 type Config struct {
 	Download         bool

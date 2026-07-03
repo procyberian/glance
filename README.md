@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.6` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.7` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -21,18 +21,18 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.6
+git checkout v11.0.7
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.6` are distributed from the project release pages:
+Binary archives for `v11.0.7` are distributed from the project release pages:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.6` release and download the asset that matches your platform.
+Look for the `v11.0.7` release and download the asset that matches your platform.
 
 Architecture mapping:
 
@@ -53,7 +53,7 @@ Planned asset names for this release:
 To publish the release entry and upload these assets automatically after setting API tokens:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.6
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.7
 ```
 
 Token guidance:
@@ -65,17 +65,17 @@ Token guidance:
 Useful script modes:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.6
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.6
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.6
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.6.md v11.0.6
+./scripts/publish-release.sh --dry-run v11.0.7
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.7
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.7
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.7.md v11.0.7
 ```
 
 This release adds:
 
-- dependency security update: `golang.org/x/crypto` bumped to `v0.53.0`
-- all direct and indirect dependencies refreshed to their latest compatible versions
-- full test coverage for `internal/keygen`, `internal/license`, `internal/uploader`, and `pkg/glance`
+- corrected all version references in `README.md` and `README.tr.md` from `v11.0.5` to `v11.0.6`
+- rewrote release description in both READMEs to accurately reflect v11.0.6 changes
+- corrected `ChangeLog.md` entry for v11.0.6 (removed inaccurate `golang.org/x/net` pin note)
 
 ## Audience
 

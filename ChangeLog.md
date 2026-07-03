@@ -1,6 +1,14 @@
 # ChangeLog
 Generated on: 2026-07-03T00:00:00+03:00
 
+## 2026-07-03 - v11.0.7 Documentation Update (Minor)
+
+- Updated `README.md` and `README.tr.md`: advanced all version references from `v11.0.5` to `v11.0.6`; rewrote "This release adds" section in both English and Turkish to describe v11.0.6 dependency and test coverage changes instead of the old v11.0.5 feature list.
+- Corrected `ChangeLog.md` v11.0.6 entry: removed an inaccurate `golang.org/x/net` explicit-pin note (the module is transitive-only and `go mod tidy` correctly omits it from `go.mod`).
+- Bumped `Version` constant to `v11.0.7` in `internal/cli/cli.go`.
+- Updated `scripts/publish-release.sh` default tag to `v11.0.7`.
+- This is a documentation-only minor update with no changes to binaries or source logic.
+
 ## 2026-07-03 - v11.0.6 Maintenance Release
 
 - Updated `go` directive from `go 1.25.0` to `go 1.26` (matched to installed toolchain).
