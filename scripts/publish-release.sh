@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-TAG="v11.0.8"
+TAG="v11.0.9"
 DIST_DIR="${DIST_DIR:-}"
 NOTES_FILE="${NOTES_FILE:-}"
 GITHUB_REPO="${GITHUB_REPO:-procyberian/glance}"

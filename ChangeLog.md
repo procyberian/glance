@@ -1,5 +1,15 @@
 # ChangeLog
-Generated on: 2026-07-03T00:00:00+03:00
+Generated on: 2026-07-13T00:00:00+03:00
+
+## 2026-07-13 - v11.0.9 Dependency Maintenance Release
+
+- Upgraded direct dependency `github.com/pkg/sftp` from `v1.13.10` to `v1.13.11`.
+- Upgraded direct dependency `golang.org/x/crypto` from `v0.53.0` to `v0.54.0`.
+- Upgraded indirect dependency `golang.org/x/sys` from `v0.46.0` to `v0.47.0`.
+- Ran module refresh to update transitive dependency set and checksums (including `golang.org/x/term` and `golang.org/x/text` updates).
+- Bumped `Version` constant to `v11.0.9` in `internal/cli/cli.go`.
+- Updated `scripts/publish-release.sh` default tag to `v11.0.9`.
+- Updated `README.md` and `README.tr.md`: advanced all release references to `v11.0.9` and refreshed the release summary section.
 
 ## 2026-07-03 - v11.0.8 Script Enhancement
 
