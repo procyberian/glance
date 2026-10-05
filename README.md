@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.9` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.10` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -21,18 +21,18 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.9
+git checkout v11.0.10
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.9` are distributed from the project release pages:
+Binary archives for `v11.0.10` are distributed from the project release pages:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.9` release and download the asset that matches your platform.
+Look for the `v11.0.10` release and download the asset that matches your platform.
 
 Architecture mapping:
 
@@ -53,7 +53,7 @@ Planned asset names for this release:
 To publish the release entry and upload these assets automatically after setting API tokens:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.9
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.10
 ```
 
 Token guidance:
@@ -65,15 +65,18 @@ Token guidance:
 Useful script modes:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.9
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.9
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.9
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.9.md v11.0.9
+./scripts/publish-release.sh --dry-run v11.0.10
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.10
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.10
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.10.md v11.0.10
 ```
 
 This release adds:
 
-- dependency maintenance updates for SSH and crypto layers (`github.com/pkg/sftp` `v1.13.11`, `golang.org/x/crypto` `v0.54.0`, `golang.org/x/sys` `v0.47.0`) with refreshed module checksums
+- security-focused dependency updates across the SSH, SFTP, and FTP layers (`golang.org/x/crypto` `v0.57.0`, `github.com/jlaffaye/ftp` `v0.2.4`, `golang.org/x/sys` `v0.48.0`, `golang.org/x/term` `v0.46.0`), which resolve the SSH denial-of-service advisories affecting `golang.org/x/crypto` `v0.54.0`
+- refreshed test dependencies (`github.com/stretchr/testify` `v1.12.1`) and regenerated module checksums
+- a full source and configuration security review that found no exploitable issues; `govulncheck` reports no vulnerabilities in reachable code (the only remaining module-level advisory, `GO-2026-5932`, concerns the unused and unmaintained `golang.org/x/crypto/openpgp` package, which glance does not import and which has no upstream fix)
+- rebuilt release archives and checksums for `v11.0.10`
 
 ## Audience
 

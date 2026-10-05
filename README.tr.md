@@ -6,7 +6,7 @@ Bu proje, yapay zeka destekli Microsoft Copilot yardımıyla başlatılmıştır
 
 ## Yayınlanan Sürüm
 
-`glance`, artık `v11` Go modül hattı ve `v11.0.9` git sürüm etiketi ile yayımlanmıştır.
+`glance`, artık `v11` Go modül hattı ve `v11.0.10` git sürüm etiketi ile yayımlanmıştır.
 
 En güncel `v11` sürümünü doğrudan şu komutla kurabilirsiniz:
 
@@ -21,18 +21,18 @@ Kaynak kodu indirip yerelde derlemek için:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.9
+git checkout v11.0.10
 go build -o glance .
 ```
 
 ## Binary İndirmeleri
 
-`v11.0.9` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
+`v11.0.10` sürümünün derlenmiş binary arşivleri proje yayın sayfalarında dağıtılır:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-`v11.0.9` sürümünü açıp platformunuza uygun asset dosyasını indirin.
+`v11.0.10` sürümünü açıp platformunuza uygun asset dosyasını indirin.
 
 Mimari eşlemesi:
 
@@ -53,7 +53,7 @@ Bu sürüm için planlanan asset adları:
 API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyalarını otomatik yüklemek için:
 
 ```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.9
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.10
 ```
 
 Token kapsamı önerileri:
@@ -65,15 +65,18 @@ Token kapsamı önerileri:
 Yararlı script modları:
 
 ```bash
-./scripts/publish-release.sh --dry-run v11.0.9
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.9
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.9
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.9.md v11.0.9
+./scripts/publish-release.sh --dry-run v11.0.10
+GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.10
+CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.10
+GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.10.md v11.0.10
 ```
 
 Bu sürümle birlikte:
 
-- SSH ve kripto katmanında bağımlılık bakım güncellemeleri yapıldı (`github.com/pkg/sftp` `v1.13.11`, `golang.org/x/crypto` `v0.54.0`, `golang.org/x/sys` `v0.47.0`) ve modül checksum kayıtları yenilendi
+- SSH, SFTP ve FTP katmanlarında güvenlik odaklı bağımlılık güncellemeleri yapıldı (`golang.org/x/crypto` `v0.57.0`, `github.com/jlaffaye/ftp` `v0.2.4`, `golang.org/x/sys` `v0.48.0`, `golang.org/x/term` `v0.46.0`); bu güncellemeler `golang.org/x/crypto` `v0.54.0` sürümünü etkileyen SSH hizmet reddi (DoS) bildirimlerini giderir
+- test bağımlılıkları yenilendi (`github.com/stretchr/testify` `v1.12.1`) ve modül checksum kayıtları yeniden oluşturuldu
+- tüm kaynak kod ve yapılandırma için güvenlik incelemesi yapıldı, istismar edilebilir bir sorun bulunmadı; `govulncheck` erişilebilir kodda açık bildirmiyor (kalan tek modül düzeyindeki bildirim `GO-2026-5932`, glance'in içe aktarmadığı, bakımı yapılmayan `golang.org/x/crypto/openpgp` paketiyle ilgilidir ve upstream düzeltmesi yoktur)
+- `v11.0.10` için sürüm arşivleri ve checksum dosyası yeniden oluşturuldu
 
 ## Kimler İçin?
 

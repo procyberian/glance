@@ -1,5 +1,22 @@
 # ChangeLog
-Generated on: 2026-07-13T00:00:00+03:00
+Generated on: 2026-10-05T00:00:00+03:00
+
+## 2026-10-05 - v11.0.10 Security and Dependency Maintenance Release
+
+- Performed a full security review of the source code, configuration, and CI workflow; no exploitable vulnerabilities were found, so no application logic changes were required.
+- Upgraded direct dependency `golang.org/x/crypto` from `v0.54.0` to `v0.57.0`, resolving the SSH denial-of-service advisories that affected `v0.54.0` (fixed in `v0.56.0`).
+- Upgraded direct dependency `github.com/jlaffaye/ftp` from `v0.2.1` to `v0.2.4`.
+- Upgraded indirect dependency `golang.org/x/sys` from `v0.47.0` to `v0.48.0` and `golang.org/x/term` from `v0.45.0` to `v0.46.0`.
+- Upgraded test dependency `github.com/stretchr/testify` from `v1.11.1` to `v1.12.1`; its YAML dependency now resolves to `go.yaml.in/yaml/v3` `v3.0.5`.
+- Changed the `go` directive from `go 1.26` to `go 1.26.0` as normalized by the Go toolchain.
+- Ran `go mod tidy` and `go mod verify`; module checksums were regenerated and verified.
+- Validation: `go test ./...`, `go vet ./...`, `go mod verify`, and `govulncheck ./...` all pass. `govulncheck` reports no vulnerabilities in reachable code.
+- Known advisory (no action possible): `GO-2026-5932` concerns the unmaintained `golang.org/x/crypto/openpgp` package. glance does not import it, and upstream provides no fixed version. `golang.org/x/crypto` is still required for `ssh`, `ssh/knownhosts`, and key generation.
+- Bumped `Version` constant to `v11.0.10` in `internal/cli/cli.go`.
+- Updated `scripts/publish-release.sh` default tag to `v11.0.10`.
+- Updated `README.md` and `README.tr.md`: advanced all release references to `v11.0.10` and refreshed the release summary section.
+- Rebuilt the release archives and `sha256sums.txt` in `dist/`.
+- Added `release-notes/v11.0.10.md`.
 
 ## 2026-07-13 - v11.0.9 Dependency Maintenance Release
 
