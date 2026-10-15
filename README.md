@@ -50,33 +50,25 @@ Planned asset names for this release:
 - `glance-darwin-arm64.tar.gz`
 - `glance-windows-amd64.zip`
 
-To publish the release entry and upload these assets automatically after setting API tokens:
+Release publication is currently handled manually through the hosting providers. The repository's automated publishing script was removed to reduce the API-token handling and automated release-publishing surface.
 
-```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.10
-```
-
-Token guidance:
-
-- GitHub classic personal access token: `repo`
-- GitHub fine-grained token: repository `Contents` set to read/write
-- Codeberg token: repository write access for releases and release assets
-
-Useful script modes:
-
-```bash
-./scripts/publish-release.sh --dry-run v11.0.10
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.10
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.10
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.10.md v11.0.10
-```
-
-This release adds:
+The published `v11.0.10` release includes:
 
 - security-focused dependency updates across the SSH, SFTP, and FTP layers (`golang.org/x/crypto` `v0.57.0`, `github.com/jlaffaye/ftp` `v0.2.4`, `golang.org/x/sys` `v0.48.0`, `golang.org/x/term` `v0.46.0`), which resolve the SSH denial-of-service advisories affecting `golang.org/x/crypto` `v0.54.0`
 - refreshed test dependencies (`github.com/stretchr/testify` `v1.12.1`) and regenerated module checksums
 - a full source and configuration security review that found no exploitable issues; `govulncheck` reports no vulnerabilities in reachable code (the only remaining module-level advisory, `GO-2026-5932`, concerns the unused and unmaintained `golang.org/x/crypto/openpgp` package, which glance does not import and which has no upstream fix)
 - rebuilt release archives and checksums for `v11.0.10`
+
+## Unreleased Security Maintenance
+
+The current source includes security and maintenance updates that have not yet been published as a new release tag or binary archive:
+
+- Go toolchain pinned to `go1.26.9` to include standard-library security fixes.
+- `golang.org/x/crypto` updated to `v0.58.0` and indirect `golang.org/x/sys` updated to `v0.49.0`.
+- SSH private-key generation now enforces file permissions of `0600` when creating or replacing a key, with a regression test for existing files.
+- `scripts/publish-release.sh` removed; releases must be published manually.
+
+Validation passed with `go test ./...`, `go vet ./...`, `go mod verify`, and `govulncheck ./...`. The vulnerability scan found no issues in reachable code; it reported one advisory in a required but unused package.
 
 ## Audience
 

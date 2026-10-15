@@ -33,6 +33,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,8 +90,25 @@ func GenerateKeyPair(cfg Config) (privateKeyPath, publicKeyPath string, err erro
 		return "", "", err
 	}
 
-	if err := os.WriteFile(privPath, privPEM, 0o600); err != nil {
+	privateKeyFile, err := os.OpenFile(privPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	if err != nil {
 		return "", "", fmt.Errorf("write private key: %w", err)
+	}
+	if err := privateKeyFile.Chmod(0o600); err != nil {
+		privateKeyFile.Close()
+		return "", "", fmt.Errorf("set private key permissions: %w", err)
+	}
+	n, writeErr := privateKeyFile.Write(privPEM)
+	if writeErr != nil {
+		privateKeyFile.Close()
+		return "", "", fmt.Errorf("write private key: %w", writeErr)
+	}
+	if n != len(privPEM) {
+		privateKeyFile.Close()
+		return "", "", fmt.Errorf("write private key: %w", io.ErrShortWrite)
+	}
+	if err := privateKeyFile.Close(); err != nil {
+		return "", "", fmt.Errorf("close private key: %w", err)
 	}
 
 	pubBytes := ssh.MarshalAuthorizedKey(pubKey)

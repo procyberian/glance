@@ -103,6 +103,27 @@ func TestGenerateKeyPairPrivateKeyPermissions(t *testing.T) {
 	}
 }
 
+func TestGenerateKeyPairTightensExistingPrivateKeyPermissions(t *testing.T) {
+	dir := t.TempDir()
+	privPath := filepath.Join(dir, "id_ed25519")
+	if err := os.WriteFile(privPath, []byte("old key"), 0o644); err != nil {
+		t.Fatalf("create existing private key: %v", err)
+	}
+
+	_, _, err := GenerateKeyPair(Config{Algorithm: "ed25519", OutputDir: dir})
+	if err != nil {
+		t.Fatalf("generate key pair: %v", err)
+	}
+
+	info, err := os.Stat(privPath)
+	if err != nil {
+		t.Fatalf("stat private key: %v", err)
+	}
+	if perm := info.Mode().Perm(); perm != 0o600 {
+		t.Fatalf("expected private key permissions 0600, got %04o", perm)
+	}
+}
+
 // checkKeyFiles verifies both key files exist, have non-zero size, and use the expected base name.
 func checkKeyFiles(t *testing.T, dir, privPath, pubPath, wantBase string) {
 	t.Helper()

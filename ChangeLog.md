@@ -1,5 +1,14 @@
 # ChangeLog
-Generated on: 2026-10-05T00:00:00+03:00
+Generated on: 2026-10-15T22:20:00+03:00
+
+## 2026-10-15 - Unreleased Security Maintenance
+
+- Pinned the Go toolchain to `go1.26.9`, which includes fixes for standard-library security advisories affecting the previous `go1.26.8` toolchain.
+- Upgraded `golang.org/x/crypto` from `v0.57.0` to `v0.58.0` and indirect dependency `golang.org/x/sys` from `v0.48.0` to `v0.49.0`.
+- Updated SSH key generation to enforce `0600` permissions when creating or replacing a private key, rather than relying on file creation mode alone.
+- Added a regression test confirming that generation tightens the permissions of an existing private key file.
+- Removed `scripts/publish-release.sh` to reduce the repository's automated release-publishing and API-token handling surface; release publication must now be performed manually.
+- Validation: `go test ./...`, `go vet ./...`, `go mod verify`, and `govulncheck ./...` pass. `govulncheck` reports no vulnerabilities in reachable code; it reports one advisory in a required but unused package.
 
 ## 2026-10-05 - v11.0.10 Security and Dependency Maintenance Release
 

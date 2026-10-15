@@ -50,33 +50,25 @@ Bu sürüm için planlanan asset adları:
 - `glance-darwin-arm64.tar.gz`
 - `glance-windows-amd64.zip`
 
-API token'ları tanımlandıktan sonra release kaydını oluşturup asset dosyalarını otomatik yüklemek için:
+Sürümler şu anda barındırma sağlayıcıları üzerinden elle yayımlanır. API token'larının işlenmesi ve otomatik sürüm yayımlama yüzeyini azaltmak amacıyla depodaki otomatik yayımlama betiği kaldırılmıştır.
 
-```bash
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh v11.0.10
-```
-
-Token kapsamı önerileri:
-
-- GitHub klasik personal access token: `repo`
-- GitHub fine-grained token: repository `Contents` izni read/write
-- Codeberg token: release ve release asset işlemleri için repository write erişimi
-
-Yararlı script modları:
-
-```bash
-./scripts/publish-release.sh --dry-run v11.0.10
-GH_TOKEN=... ./scripts/publish-release.sh --github-only v11.0.10
-CODEBERG_TOKEN=... ./scripts/publish-release.sh --codeberg-only v11.0.10
-GH_TOKEN=... CODEBERG_TOKEN=... ./scripts/publish-release.sh --dist-dir dist --notes-file release-notes/v11.0.10.md v11.0.10
-```
-
-Bu sürümle birlikte:
+Yayımlanmış `v11.0.10` sürümü şunları içerir:
 
 - SSH, SFTP ve FTP katmanlarında güvenlik odaklı bağımlılık güncellemeleri yapıldı (`golang.org/x/crypto` `v0.57.0`, `github.com/jlaffaye/ftp` `v0.2.4`, `golang.org/x/sys` `v0.48.0`, `golang.org/x/term` `v0.46.0`); bu güncellemeler `golang.org/x/crypto` `v0.54.0` sürümünü etkileyen SSH hizmet reddi (DoS) bildirimlerini giderir
 - test bağımlılıkları yenilendi (`github.com/stretchr/testify` `v1.12.1`) ve modül checksum kayıtları yeniden oluşturuldu
 - tüm kaynak kod ve yapılandırma için güvenlik incelemesi yapıldı, istismar edilebilir bir sorun bulunmadı; `govulncheck` erişilebilir kodda açık bildirmiyor (kalan tek modül düzeyindeki bildirim `GO-2026-5932`, glance'in içe aktarmadığı, bakımı yapılmayan `golang.org/x/crypto/openpgp` paketiyle ilgilidir ve upstream düzeltmesi yoktur)
 - `v11.0.10` için sürüm arşivleri ve checksum dosyası yeniden oluşturuldu
+
+## Yayımlanmamış Güvenlik Bakımı
+
+Mevcut kaynak kodunda bulunan, henüz yeni bir sürüm etiketi veya binary arşivi olarak yayımlanmamış güvenlik ve bakım güncellemeleri:
+
+- Standart kütüphane güvenlik düzeltmelerini içeren `go1.26.9` Go toolchain sürümüne sabitlendi.
+- `golang.org/x/crypto` `v0.58.0` sürümüne, dolaylı `golang.org/x/sys` ise `v0.49.0` sürümüne güncellendi.
+- SSH özel anahtarı oluşturulurken veya üzerine yazılırken dosya izinleri `0600` olarak zorunlu kılındı; mevcut dosyalar için gerileme testi eklendi.
+- `scripts/publish-release.sh` kaldırıldı; sürümler artık elle yayımlanmalıdır.
+
+`go test ./...`, `go vet ./...`, `go mod verify` ve `govulncheck ./...` doğrulamaları başarılı oldu. Güvenlik taraması erişilebilir kodda açık bulmadı; gerekli ancak kullanılmayan bir paket için bir bildirim raporladı.
 
 ## Kimler İçin?
 
