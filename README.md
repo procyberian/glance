@@ -6,7 +6,7 @@ This project was initiated with the help of AI-powered Microsoft Copilot, but it
 
 ## Published Release
 
-`glance` is now published as the `v11` Go module line and as the `v11.0.10` git release tag.
+`glance` is now published as the `v11` Go module line and as the `v11.0.11` git release tag.
 
 You can install the latest `v11` release directly with:
 
@@ -21,54 +21,48 @@ You can also download the source and build it locally:
 ```bash
 git clone git@github.com:procyberian/glance.git
 cd glance
-git checkout v11.0.10
+git checkout v11.0.11
 go build -o glance .
 ```
 
 ## Binary Downloads
 
-Binary archives for `v11.0.10` are distributed from the project release pages:
+Binary archives for `v11.0.11` are distributed from the project release pages:
 
 - GitHub Releases: <https://github.com/procyberian/glance/releases>
 - Codeberg Releases: <https://codeberg.org/procyberian/glance/releases>
 
-Look for the `v11.0.10` release and download the asset that matches your platform.
+Look for the `v11.0.11` release and download the asset that matches your platform.
 
 Architecture mapping:
 
 - Linux x86_64: `glance-linux-amd64.tar.gz`
 - Linux ARM64: `glance-linux-arm64.tar.gz`
+- Linux ARMv7: `glance-linux-armv7.tar.gz`
+- Linux RISC-V 64: `glance-linux-riscv64.tar.gz`
 - macOS Intel: `glance-darwin-amd64.tar.gz`
 - macOS Apple Silicon: `glance-darwin-arm64.tar.gz`
 - Windows x86_64: `glance-windows-amd64.zip`
+- Windows ARM64: `glance-windows-arm64.zip`
+- FreeBSD x86_64 / ARM64: `glance-freebsd-amd64.tar.gz` / `glance-freebsd-arm64.tar.gz`
+- OpenBSD x86_64 / ARM64: `glance-openbsd-amd64.tar.gz` / `glance-openbsd-arm64.tar.gz`
+- NetBSD x86_64 / ARM64: `glance-netbsd-amd64.tar.gz` / `glance-netbsd-arm64.tar.gz`
+- DragonFly BSD x86_64: `glance-dragonfly-amd64.tar.gz`
+- Checksums for all archives: `sha256sums.txt`
 
-Planned asset names for this release:
+Verify a download against the checksum file with `sha256sum -c --ignore-missing sha256sums.txt`.
 
-- `glance-linux-amd64.tar.gz`
-- `glance-linux-arm64.tar.gz`
-- `glance-darwin-amd64.tar.gz`
-- `glance-darwin-arm64.tar.gz`
-- `glance-windows-amd64.zip`
+Release publication is handled manually through the hosting providers. The repository's automated publishing script was removed to reduce the API-token handling and automated release-publishing surface. Archives are cross-compiled with `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w"` and have not been tested natively on every listed platform.
 
-Release publication is currently handled manually through the hosting providers. The repository's automated publishing script was removed to reduce the API-token handling and automated release-publishing surface.
+The `v11.0.11` release includes:
 
-The published `v11.0.10` release includes:
+- Go toolchain pinned to `go1.26.9` to include standard-library security fixes
+- `golang.org/x/crypto` updated to `v0.58.0` and indirect `golang.org/x/sys` updated to `v0.49.0`
+- SSH private-key generation now enforces file permissions of `0600` when creating or replacing a key, with a regression test for existing files
+- `scripts/publish-release.sh` removed; releases are published manually
+- expanded binary archives for macOS, Windows, Linux, and BSD targets
 
-- security-focused dependency updates across the SSH, SFTP, and FTP layers (`golang.org/x/crypto` `v0.57.0`, `github.com/jlaffaye/ftp` `v0.2.4`, `golang.org/x/sys` `v0.48.0`, `golang.org/x/term` `v0.46.0`), which resolve the SSH denial-of-service advisories affecting `golang.org/x/crypto` `v0.54.0`
-- refreshed test dependencies (`github.com/stretchr/testify` `v1.12.1`) and regenerated module checksums
-- a full source and configuration security review that found no exploitable issues; `govulncheck` reports no vulnerabilities in reachable code (the only remaining module-level advisory, `GO-2026-5932`, concerns the unused and unmaintained `golang.org/x/crypto/openpgp` package, which glance does not import and which has no upstream fix)
-- rebuilt release archives and checksums for `v11.0.10`
-
-## Unreleased Security Maintenance
-
-The current source includes security and maintenance updates that have not yet been published as a new release tag or binary archive:
-
-- Go toolchain pinned to `go1.26.9` to include standard-library security fixes.
-- `golang.org/x/crypto` updated to `v0.58.0` and indirect `golang.org/x/sys` updated to `v0.49.0`.
-- SSH private-key generation now enforces file permissions of `0600` when creating or replacing a key, with a regression test for existing files.
-- `scripts/publish-release.sh` removed; releases must be published manually.
-
-Validation passed with `go test ./...`, `go vet ./...`, `go mod verify`, and `govulncheck ./...`. The vulnerability scan found no issues in reachable code; it reported one advisory in a required but unused package.
+Validation passed with `go test ./...`, `go vet ./...`, `go mod verify`, and `govulncheck ./...`. The vulnerability scan found no issues in reachable code; it reported one advisory (`GO-2026-5932`) in a required but unused package.
 
 ## Audience
 

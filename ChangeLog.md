@@ -1,7 +1,12 @@
 # ChangeLog
 Generated on: 2026-10-15T22:20:00+03:00
 
-## 2026-10-15 - Unreleased Security Maintenance
+## 2026-10-15 - v11.0.11 Security Maintenance Release
+
+- Bumped `Version` constant to `v11.0.11` in `internal/cli/cli.go`.
+- Updated `README.md` and `README.tr.md` to `v11.0.11`, including the expanded asset list and checksum verification instructions.
+- Expanded release archives to macOS (Intel, Apple Silicon), Windows (x86_64, ARM64), Linux (x86_64, ARM64, ARMv7, RISC-V 64), and BSD (FreeBSD, OpenBSD, NetBSD on x86_64/ARM64; DragonFly BSD on x86_64). Archives are cross-compiled with `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w"` and `sha256sums.txt` covers all of them.
+- Added `release-notes/v11.0.11.md`.
 
 - Pinned the Go toolchain to `go1.26.9`, which includes fixes for standard-library security advisories affecting the previous `go1.26.8` toolchain.
 - Upgraded `golang.org/x/crypto` from `v0.57.0` to `v0.58.0` and indirect dependency `golang.org/x/sys` from `v0.48.0` to `v0.49.0`.
